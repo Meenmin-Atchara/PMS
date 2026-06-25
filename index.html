@@ -12,14 +12,16 @@
         .label-text { font-size: 11px; font-weight: bold; margin-bottom: 3px; display: block; color: #4b5563; text-transform: uppercase; }
         .filter-header { font-size: 13px; font-weight: bold; color: #1e40af; margin-bottom: 12px; display: flex; align-items: center; border-bottom: 1px solid #e5e7eb; padding-bottom: 8px; }
         .spec-row { display: grid; grid-template-columns: 150px 1fr 20px 1fr 60px; gap: 8px; align-items: center; margin-bottom: 6px; }
+        [x-cloak] { display: none !important; }
     </style>
 </head>
-<body>
-
-<div class="modal-container" x-data="{ 
+<body x-data="{ 
     mode: 'Specific', 
     selectedStickers: [],
     availableStickers: ['(S-KOT01)', '(S-BAR02)', '(S-EXTRA01)'],
+    showImageModal: false,
+    modalTitle: '',
+    modalImg: '',
     toggleSticker(tag) {
         if (!tag) return;
         if(this.selectedStickers.includes(tag)) {
@@ -27,14 +29,31 @@
         } else {
             this.selectedStickers.push(tag);
         }
+    },
+    openImage(title, url) {
+        this.modalTitle = title;
+        this.modalImg = url;
+        this.showImageModal = true;
     }
 }">
+
+<!-- Modal ดูรูปภาพ -->
+<div x-show="showImageModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50" x-cloak>
+    <div class="bg-white p-6 rounded-lg w-full max-w-sm" @click.away="showImageModal = false">
+        <h3 class="font-bold mb-4 text-center" x-text="modalTitle"></h3>
+        <img :src="modalImg" alt="Packaging Detail" class="w-full rounded border">
+        <button @click="showImageModal = false" class="mt-4 w-full bg-gray-800 text-white py-2 rounded">ปิด</button>
+    </div>
+</div>
+
+<div class="modal-container">
     <div class="header-bg">
         <span>เพิ่มมาตรฐานเงื่อนไขการนำบรรจุภัณฑ์ไปใช้ (General & Specific)</span>
         <button>✕</button>
     </div>
 
     <div class="p-6 grid grid-cols-2 gap-8">
+        <!-- ฝั่งซ้าย -->
         <div class="space-y-4">
             <div>
                 <label class="label-text">รูปแบบข้อกำหนดการนำไปใช้ (Mapping Mode) *</label>
@@ -47,48 +66,23 @@
             <div class="border-t pt-4">
                 <label class="label-text mb-3">ข้อมูลป้ายสินค้าหลัก (Master Tag Info)</label>
                 <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="label-text">รหัส Brand สินค้า</label>
-                        <select class="input-box"><option>P5 : GOLDEN SHIP ON RED</option></select>
-                    </div>
-                    <div>
-                        <label class="label-text">รหัสป้ายสินค้า</label>
-                        <select class="input-box"><option>0ช : ป้ายเรือใบทองพื้นแดง</option></select>
-                    </div>
+                    <div><label class="label-text">รหัส Brand สินค้า</label><select class="input-box"><option>P5 : GOLDEN SHIP ON RED</option></select></div>
+                    <div><label class="label-text">รหัสป้ายสินค้า</label><select class="input-box"><option>0ช : ป้ายเรือใบทองพื้นแดง</option></select></div>
                 </div>
             </div>
 
             <div x-show="mode === 'Specific'" class="border-t pt-4">
                 <div class="filter-header"><span>▼ ระบุรายละเอียดคัดกรองย่อย (Specific Filters)</span></div>
-                
                 <div class="grid grid-cols-2 gap-4">
                     <div><label class="label-text">ประเภทการขาย</label><select class="input-box"><option>ขายต่างประเทศ (Export)</option></select></div>
                     <div><label class="label-text">ประเภทการอบ (Type)</label><select class="input-box"><option>อบ YOKO</option></select></div>
                     <div><label class="label-text">รหัสลูกค้า</label><select class="input-box"><option>All (ทุกรหัสลูกค้า)</option></select></div>
                     <div><label class="label-text">ประเภทสินค้า</label><select class="input-box border-green-500"><option>M : MONO NET</option></select></div>
-                    
-                    <div>
-                        <label class="label-text">ประเภทการรุม</label>
-                        <select class="input-box">
-                            <option value="">-- เลือกประเภทการรุม --</option>
-                        </select>
-                    </div>
-                    
+                    <div><label class="label-text">ประเภทการรุม</label><select class="input-box"><option value="">-- เลือกประเภทการรุม --</option></select></div>
                     <div class="relative group">
-                        <label class="label-text flex items-center gap-1">
-                            รุ่น (TWINE SERIES) *
-                            <span class="cursor-help text-yellow-600 font-bold border border-yellow-600 rounded-full w-4 h-4 flex items-center justify-center text-[10px]">!</span>
-                        </label>
-                        <div class="absolute z-10 w-64 p-2 mt-2 text-[11px] text-white bg-gray-800 rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                            ข้อมูลสำหรับประเภทสินค้า ด้าย สายเอ็น และเชือก
-                        </div>
-                        <select class="input-box border-yellow-600 bg-yellow-50"> 
-                            <option value="">-- เลือกรหัสรุ่น --</option>
-                            <option value="10">10 : 100 m / spool</option>
-                            <option value="13">13 : 1000 m / spool</option>
-                        </select>
+                        <label class="label-text flex items-center gap-1">รุ่น (TWINE SERIES) * <span class="cursor-help text-yellow-600 font-bold border border-yellow-600 rounded-full w-4 h-4 flex items-center justify-center text-[10px]">!</span></label>
+                        <select class="input-box border-yellow-600 bg-yellow-50"><option value="">-- เลือกรหัสรุ่น --</option></select>
                     </div>
-
                     <div><label class="label-text">เบอร์ใยติดป้าย</label><input class="input-box" value="0.30 mm"></div>
                     <div><label class="label-text">เงื่อน (DK/SK)</label><select class="input-box"><option>DK (Double Knot)</option></select></div>
                     <div><label class="label-text">Shipping Mark</label><input class="input-box" value="MY0401 SION LEE "></div>
@@ -106,29 +100,25 @@
             </div>
         </div>
 
+        <!-- ฝั่งขวา -->
         <div class="border-l pl-8">
             <div class="font-bold text-green-700 text-sm mb-4">บรรจุภัณฑ์สินค้าหลัก (5 Core Materials)</div>
             <div class="space-y-3">
-                <div class="flex items-center gap-2"><span class="w-1/3 text-xs">ถุงบรรจุสินค้า</span><select class="input-box flex-1"><option>ZF : ถุงใสพิมพ์โลโก้ </option></select><button class="bg-blue-900 text-white px-2 py-1 text-[10px] rounded">รูป</button></div>
-                <div class="flex items-center gap-2"><span class="w-1/3 text-xs">Tape/Sticker</span><select class="input-box flex-1"><option>P5 : สติกเกอร์ เรือใบทองพื้นแดง</option></select><button class="bg-blue-900 text-white px-2 py-1 text-[10px] rounded">รูป</button></div>
-                <div class="flex items-center gap-2"><span class="w-1/3 text-xs">กระสอบผ้าใบ</span><select class="input-box flex-1"><option>10 : กระสอบสีเหลืองไม่มีแถบ</option></select><button class="bg-blue-900 text-white px-2 py-1 text-[10px] rounded">รูป</button></div>
-                <div class="flex items-center gap-2"><span class="w-1/3 text-xs">สายรัดกระสอบ</span><select class="input-box flex-1"><option>01 : สีเหลือง LOGO เรือใบ</option></select><button class="bg-blue-900 text-white px-2 py-1 text-[10px] rounded">รูป</button></div>
+                <div class="flex items-center gap-2"><span class="w-1/3 text-xs">ถุงบรรจุสินค้า</span><select class="input-box flex-1"><option>ZF : ถุงใสพิมพ์โลโก้ </option></select><button @click="openImage('ถุงบรรจุสินค้า', 'https://via.placeholder.com/300/300')" class="bg-blue-900 text-white px-2 py-1 text-[10px] rounded">รูป</button></div>
+                <div class="flex items-center gap-2"><span class="w-1/3 text-xs">Tape/Sticker</span><select class="input-box flex-1"><option>P5 : สติกเกอร์ เรือใบทองพื้นแดง</option></select><button @click="openImage('Tape/Sticker', 'https://via.placeholder.com/300')" class="bg-blue-900 text-white px-2 py-1 text-[10px] rounded">รูป</button></div>
+                <div class="flex items-center gap-2"><span class="w-1/3 text-xs">กระสอบผ้าใบ</span><select class="input-box flex-1"><option>10 : กระสอบสีเหลืองไม่มีแถบ</option></select><button @click="openImage('กระสอบผ้าใบ', 'https://via.placeholder.com/300')" class="bg-blue-900 text-white px-2 py-1 text-[10px] rounded">รูป</button></div>
+                <div class="flex items-center gap-2"><span class="w-1/3 text-xs">สายรัดกระสอบ</span><select class="input-box flex-1"><option>01 : สีเหลือง LOGO เรือใบ</option></select><button @click="openImage('สายรัดกระสอบ', 'https://via.placeholder.com/300')" class="bg-blue-900 text-white px-2 py-1 text-[10px] rounded">รูป</button></div>
                 
                 <div class="flex items-start gap-2">
                     <span class="w-1/3 text-xs mt-2">สติกเกอร์กระสอบ</span>
                     <div class="flex-1">
                         <select class="input-box" @change="toggleSticker($event.target.value); $event.target.value=''">
-                            <option value="">-- เลือกสติกเกอร์ (เลือกได้หลายอัน) --</option>
-                            <template x-for="tag in availableStickers" :key="tag">
-                                <option :value="tag" x-text="tag"></option>
-                            </template>
+                            <option value="">-- เลือกสติกเกอร์ --</option>
+                            <template x-for="tag in availableStickers" :key="tag"><option :value="tag" x-text="tag"></option></template>
                         </select>
                         <div class="flex flex-wrap gap-1 mt-2">
                             <template x-for="tag in selectedStickers" :key="tag">
-                                <span class="bg-blue-600 text-white text-[10px] px-2 py-1 rounded flex items-center gap-1">
-                                    <span x-text="tag"></span>
-                                    <button @click="toggleSticker(tag)" class="ml-1 font-bold">×</button>
-                                </span>
+                                <span class="bg-blue-600 text-white text-[10px] px-2 py-1 rounded flex items-center gap-1"><span x-text="tag"></span><button @click="toggleSticker(tag)" class="ml-1 font-bold">×</button></span>
                             </template>
                         </div>
                     </div>
