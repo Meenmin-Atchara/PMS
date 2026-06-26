@@ -20,11 +20,32 @@
 <body x-data="{
     productTypes: ['M : MONO NET', 'N : MULTI FILAMENT NET', 'X : MONO LINE','Y : NYLON TWINE'],
     selectedProducts: ['M : MONO NET','N : MULTI FILAMENT NET','X : MONO LINE'],
+    trammelingTypes: ['DT', 'ST', 'OT'],
+    selectedTrammelingTypes: [],
+    twineSeries: ['500 g / spool', '1 kg / spool', '2 kg / spool'],
+    selectedTwineSeries: [],
     toggleProduct(type) {
+        if (!type) return;
         if (this.selectedProducts.includes(type)) {
             this.selectedProducts = this.selectedProducts.filter(v => v !== type);
         } else {
             this.selectedProducts.push(type);
+        }
+    },
+    toggleTrammeling(type) {
+        if (!type) return;
+        if (this.selectedTrammelingTypes.includes(type)) {
+            this.selectedTrammelingTypes = this.selectedTrammelingTypes.filter(v => v !== type);
+        } else {
+            this.selectedTrammelingTypes.push(type);
+        }
+    },
+    toggleTwine(type) {
+        if (!type) return;
+        if (this.selectedTwineSeries.includes(type)) {
+            this.selectedTwineSeries = this.selectedTwineSeries.filter(v => v !== type);
+        } else {
+            this.selectedTwineSeries.push(type);
         }
     }
 }">
@@ -74,6 +95,9 @@
                                         <button type="button" class="text-blue-700 font-bold" @click="toggleProduct(item)">×</button>
                                     </span>
                                 </template>
+                                <template x-if="selectedProducts.length === 0">
+                                    <span class="text-xs text-gray-500">All (ทั้งหมด)</span>
+                                </template>
                                 <select class="bg-transparent outline-none text-sm flex-1 min-w-[140px]" @change="toggleProduct($event.target.value); $event.target.value='';">
                                     <option value=""></option>
                                     <template x-for="type in productTypes" :key="type">
@@ -85,20 +109,54 @@
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
+                        <div class="group">
                             <label class="label-text">ประเภทการรุม (Trammeling Type)</label>
-                            <select class="input-box"><option>All (ทุกประเภทการรุม)</option></select>
+                            <div class="relative">
+                                <div class="input-box min-h-[44px] flex flex-wrap gap-2 items-center">
+                                    <template x-for="item in selectedTrammelingTypes" :key="item">
+                                        <span class="tag">
+                                            <span x-text="item"></span>
+                                            <button type="button" class="text-blue-700 font-bold" @click="toggleTrammeling(item)">×</button>
+                                        </span>
+                                    </template>
+                                    <template x-if="selectedTrammelingTypes.length === 0">
+                                        <span class="text-xs text-gray-500">All (ทั้งหมด)</span>
+                                    </template>
+                                    <select class="bg-transparent outline-none text-sm flex-1 min-w-[140px]" @change="toggleTrammeling($event.target.value); $event.target.value='';">
+                                        <option value=""></option>
+                                        <template x-for="item in trammelingTypes" :key="item">
+                                            <option :value="item" x-text="item"></option>
+                                        </template>
+                                    </select>
+                                </div>
+                                <div class="hidden group-hover:block absolute left-0 top-full mt-2 z-10 bg-gray-800 text-white text-xs rounded px-3 py-2 whitespace-nowrap shadow-lg">
+                                    ข้อมูลสำหรับสินค้าประเภทอวนรุม
+                                </div>
+                            </div>
                         </div>
 
                         <div class="group">
                             <label class="label-text">รุ่น (Twine Series)</label>
                             <div class="relative">
-                                <select class="input-box border-yellow-600 bg-yellow-50">
-                                    <option value="">-- เลือกรหัสรุ่น --</option>
-                                    <option value="">500 g / spool </option>
-                                </select>
-                                <div class="absolute left-0 top-full mt-2 hidden group-hover:block z-10 bg-gray-800 text-white text-xs rounded px-3 py-2 whitespace-nowrap shadow-lg">
-                                    ข้อมูลสำหรับสินค้า ด้าย/สายเอ็น/เชือก
+                                <div class="input-box min-h-[44px] flex flex-wrap gap-2 items-center">
+                                    <template x-for="item in selectedTwineSeries" :key="item">
+                                        <span class="tag">
+                                            <span x-text="item"></span>
+                                            <button type="button" class="text-blue-700 font-bold" @click="toggleTwine(item)">×</button>
+                                        </span>
+                                    </template>
+                                    <template x-if="selectedTwineSeries.length === 0">
+                                        <span class="text-xs text-gray-500">All (ทั้งหมด)</span>
+                                    </template>
+                                    <select class="bg-transparent outline-none text-sm flex-1 min-w-[140px]" @change="toggleTwine($event.target.value); $event.target.value='';">
+                                        <option value=""></option>
+                                        <template x-for="item in twineSeries" :key="item">
+                                            <option :value="item" x-text="item"></option>
+                                        </template>
+                                    </select>
+                                </div>
+                                <div class="hidden group-hover:block absolute left-0 top-full mt-2 z-10 bg-gray-800 text-white text-xs rounded px-3 py-2 whitespace-nowrap shadow-lg">
+                                    ข้อมูลสำหรับสินค้าด้าย สายเอ็นและเชือก
                                 </div>
                             </div>
                         </div>
