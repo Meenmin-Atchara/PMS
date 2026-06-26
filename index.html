@@ -72,7 +72,7 @@
             <div id="master" class="border-t pt-4">
                 <label class="label-text mb-3">ข้อมูลป้ายสินค้าหลัก (Master Tag Info)</label>
                 <div class="grid grid-cols-2 gap-4">
-                    <div><label class="label-text">รหัส Brand สินค้า</label><select class="input-box"><option>P5 : GOLDEN SHIP ON RED</option></select></div>
+                    <div><label class="label-text">รหัส Brand สินค้า</label><select class="input-box"><option>ZK : GOLDEN SHIP ON RED</option></select></div>
                     <div><label class="label-text">รหัสป้ายสินค้า</label><select class="input-box"><option>0ช : ป้ายเรือใบทองพื้นแดง</option></select></div>
                 </div>
             </div>
@@ -86,8 +86,17 @@
                     <div><label class="label-text">ประเภทสินค้า</label><select class="input-box border-green-500"><option>M : MONO NET</option></select></div>
                     <div><label class="label-text">ประเภทการรุม</label><select class="input-box"><option value="">-- เลือกประเภทการรุม --</option></select></div>
                     <div class="relative group">
-                        <label class="label-text flex items-center gap-1">รุ่น (TWINE SERIES) * <span class="cursor-help text-yellow-600 font-bold border border-yellow-600 rounded-full w-4 h-4 flex items-center justify-center text-[10px]">!</span></label>
-                        <select class="input-box border-yellow-600 bg-yellow-50"><option value="">-- เลือกรหัสรุ่น --</option></select>
+                        <label class="label-text flex items-center gap-1">รุ่น (TWINE SERIES) <span class="cursor-help text-yellow-600 font-bold border border-yellow-600 rounded-full w-4 h-4 flex items-center justify-center text-[10px]">!</span></label>
+                        <div class="relative">
+                            <select class="input-box border-yellow-600 bg-yellow-50">
+                                <option value="">-- เลือกรหัสรุ่น --</option>
+                                <option value="">500 g / spool </option>
+                            </select>
+                            <div class="absolute left-0 top-full mt-2 hidden group-hover:block z-10 bg-gray-800 text-white text-xs rounded px-3 py-2 whitespace-nowrap shadow-lg">
+                                ข้อมูลสำหรับสินค้า ด้าย/สายเอ็น/เชือก
+                            </div>
+                        </div>
+
                     </div>
                     <div><label class="label-text">เบอร์ใยติดป้าย</label><input class="input-box" value="0.30 mm"></div>
                     <div><label class="label-text">เงื่อน (DK/SK)</label><select class="input-box"><option>DK (Double Knot)</option></select></div>
