@@ -3,93 +3,183 @@
 <head>
     <meta charset="UTF-8">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <style>
-        body { font-family: sans-serif; background-color: #f3f4f6; padding: 0; }
-        .modal-container { max-width: 1000px; margin: 20px auto; background: white; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); overflow: hidden; }
-        .header-bg { background-color: #10b981; color: white; padding: 15px 20px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
-        .input-box { border: 1px solid #d1d5db; padding: 6px 10px; border-radius: 4px; width: 100%; font-size: 13px; background-color: #fcfcfc; }
-        .label-text { font-size: 11px; font-weight: bold; color: #374151; margin-bottom: 4px; display: block; }
-        .spec-table-header { font-size: 11px; color: #6b7280; margin-bottom: 10px; display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 10px; }
-        .spec-row { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 10px; margin-bottom: 8px; align-items: center; }
+        body { font-family: sans-serif; background-color: #f3f4f6; margin: 0; }
+        .page-wrap { max-width: 1100px; margin: 20px auto; padding: 0 16px; }
+        .modal-container { background: white; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.08); overflow: hidden; }
+        .header-bg { background: linear-gradient(90deg, #10b981, #059669); color: white; padding: 16px 20px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
+        .input-box { border: 1px solid #d1d5db; padding: 10px 12px; border-radius: 8px; width: 100%; font-size: 13px; background-color: #fff; }
+        .label-text { font-size: 11px; font-weight: bold; color: #374151; margin-bottom: 6px; display: block; text-transform: uppercase; letter-spacing: .02em; }
+        .section-title { font-size: 14px; font-weight: 700; color: #111827; margin-bottom: 12px; }
+        .spec-row { display: grid; grid-template-columns: 1.7fr 1fr 1fr; gap: 10px; margin-bottom: 8px; align-items: center; }
+        .tag { display: inline-flex; align-items: center; gap: 6px; background: #dbeafe; color: #1d4ed8; border: 1px solid #bfdbfe; border-radius: 9999px; padding: 4px 10px; font-size: 11px; font-weight: 600; }
+        [x-cloak] { display: none !important; }
     </style>
 </head>
-<body>
+<body x-data="{
+    productTypes: ['M : MONO NET', 'N : MULTI FILAMENT NET', 'X : MONO LINE','Y : NYLON TWINE'],
+    selectedProducts: ['M : MONO NET','N : MULTI FILAMENT NET','X : MONO LINE'],
+    toggleProduct(type) {
+        if (this.selectedProducts.includes(type)) {
+            this.selectedProducts = this.selectedProducts.filter(v => v !== type);
+        } else {
+            this.selectedProducts.push(type);
+        }
+    }
+}">
 
-<!-- แถบเมนู -->
-<nav class="bg-gray-800 text-white p-4 shadow-md">
-    <div class="max-w-[1000px] mx-auto flex gap-8 text-sm">
-        <a href="index.html" class="hover:text-green-400">เพิ่มมาตรฐานเงื่อนไขการนำบรรจุภัณฑ์ไปใช้</a>
-        <a href="ProductTagManage.html" class="font-bold border-b-2 border-green-400 pb-1">มาตรฐานเงื่อนไขการใช้ป้ายสินค้า</a>
+<nav class="bg-gray-800 text-white shadow-md">
+    <div class="page-wrap">
+        <div class="flex gap-8 text-sm py-4 overflow-x-auto">
+            <a href="index.html" class="hover:text-green-400 whitespace-nowrap">เพิ่มมาตรฐานเงื่อนไขการนำบรรจุภัณฑ์ไปใช้</a>
+            <a href="ProductTagManage.html" class="font-bold border-b-2 border-green-400 pb-1 whitespace-nowrap">มาตรฐานเงื่อนไขการใช้ป้ายสินค้า</a>
+        </div>
     </div>
 </nav>
 
-<div class="modal-container">
-    <!-- Header -->
-    <div class="header-bg">
-        <span class="flex items-center gap-2">✚ เพิ่มมาตรฐานเงื่อนไขการใช้ป้ายสินค้า</span>
-        <span>✕</span>
-    </div>
+<div class="page-wrap">
+    <div class="modal-container">
+        <div class="header-bg">
+            <span class="flex items-center gap-2">✚ เพิ่มมาตรฐานเงื่อนไขการใช้ป้ายสินค้า</span>
+            <span>✕</span>
+        </div>
 
-    <div class="p-6">
-        <div class="grid grid-cols-3 gap-6">
-            <!-- Left & Middle Column (รวมกันเป็นก้อนหลัก) -->
-            <div class="col-span-2 space-y-4">
-                <div class="grid grid-cols-3 gap-4">
-                    <div><label class="label-text">ประเภทการขาย *</label><select class="input-box"><option>ขายต่างประเทศ (Export Sales)</option></select></div>
-                    <div><label class="label-text">ระดับคุณภาพ *</label><select class="input-box"><option>เกรด P (Premium)</option></select></div>
-                    <div><label class="label-text">รหัส Brand สินค้า *</label><select class="input-box"><option>เรือใบทอง (Golden Ship)</option></select></div>
+        <div class="p-6">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="lg:col-span-2 space-y-5">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="label-text">ประเภทการขาย *</label>
+                            <select class="input-box"><option>ขายต่างประเทศ (Export Sales)</option></select>
+                        </div>
+                        <div>
+                            <label class="label-text">รหัสลูกค้า (Customer Code)</label>
+                            <select class="input-box"><option>All (ทุกรหัสลูกค้า)</option></select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="label-text">ระดับคุณภาพ </label>
+                            <select class="input-box"><option>P (Premium)</option></select>
+                        </div>
+
+                        <div>
+                            <label class="label-text">ประเภทสินค้า (Product Type)</label>
+                            <div class="input-box min-h-[44px] flex flex-wrap gap-2 items-center">
+                                <template x-for="item in selectedProducts" :key="item">
+                                    <span class="tag">
+                                        <span x-text="item"></span>
+                                        <button type="button" class="text-blue-700 font-bold" @click="toggleProduct(item)">×</button>
+                                    </span>
+                                </template>
+                                <select class="bg-transparent outline-none text-sm flex-1 min-w-[140px]" @change="toggleProduct($event.target.value); $event.target.value='';">
+                                    <option value=""></option>
+                                    <template x-for="type in productTypes" :key="type">
+                                        <option :value="type" x-text="type"></option>
+                                    </template>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="label-text">ประเภทการรุม (Trammeling Type)</label>
+                            <select class="input-box"><option>All (ทุกประเภทการรุม)</option></select>
+                        </div>
+
+                        <div class="group">
+                            <label class="label-text">รุ่น (Twine Series)</label>
+                            <div class="relative">
+                                <select class="input-box border-yellow-600 bg-yellow-50">
+                                    <option value="">-- เลือกรหัสรุ่น --</option>
+                                    <option value="">500 g / spool </option>
+                                </select>
+                                <div class="absolute left-0 top-full mt-2 hidden group-hover:block z-10 bg-gray-800 text-white text-xs rounded px-3 py-2 whitespace-nowrap shadow-lg">
+                                    ข้อมูลสำหรับสินค้า ด้าย/สายเอ็น/เชือก
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="label-text">เบอร์ใยติดป้าย (Twine on Label)</label>
+                            <input class="input-box" value="0.30 mm">
+                        </div>
+                        <div>
+                            <label class="label-text">รหัสสีหู (Ear Color Code)</label>
+                            <select class="input-box"><option>YLM90</option></select>
+                        </div>
+                    </div>
+
+                    <div class="border rounded-xl p-4 bg-gray-50">
+                        <div class="section-title flex items-center gap-2">⚙ รายละเอียดสเปคสินค้า</div>
+                        <div class="grid grid-cols-3 text-[10px] text-gray-500 mb-2">
+                            <span>หัวข้อรายการสเปก</span>
+                            <span class="text-center">ค่าต่ำสุด (Min)</span>
+                            <span class="text-center">ค่าสูงสุด (Max)</span>
+                        </div>
+                        <div class="spec-row text-xs"><span>1. เบอร์ใยผลิต</span><select class="input-box"><option>0.10 mm</option></select><select class="input-box"><option>0.90 mm</option></select></div>
+                        <div class="spec-row text-xs"><span>2. ขนาดตา</span><input class="input-box" value="1.50"><input class="input-box" value="5.00"></div>
+                        <div class="spec-row text-xs"><span>3. จำนวนตา</span><input class="input-box" value="50.00"><input class="input-box" value="200.00"></div>
+                        <div class="spec-row text-xs"><span>4. ความยาว</span><input class="input-box" value="100.00"><input class="input-box" value="600.00"></div>
+                        <div class="spec-row text-xs"><span>5. นน.ต่อผืน</span><input class="input-box" value="1.20"><input class="input-box" value="15.00"></div>
+                    </div>
                 </div>
 
-                <div class="grid grid-cols-3 gap-4">
-                    <div><label class="label-text">รหัสลูกค้า (Customer Code)</label><select class="input-box"><option>All (ทุกรหัสลูกค้า)</option></select></div>
-                    <div class="col-span-2"><label class="label-text">ประเภทสินค้า (Product Type)</label><div class="input-box bg-gray-50 text-xs py-2">ด้าย × สายเย็น ×</div></div>
-                </div>
+                <div class="space-y-5">
+                    <div class="border rounded-xl p-4 bg-gray-50">
+                        <div class="section-title">ข้อมูลป้ายหลัก</div>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="label-text">รหัส Brand สินค้า *</label>
+                                <select class="input-box"><option>08 : เรือใบทอง (Golden Ship)</option></select>
+                            </div>
+                            <div>
+                                <label class="label-text">รหัสป้าย *</label>
+                                <select class="input-box"><option>A01L : ป้ายเรือใบทอง</option></select>
+                            </div>
+                            <div>
+                                <label class="label-text">รหัสป้ายเก่า (ถ้ามี)</label>
+                                <input class="input-box" value="72">
+                            </div>
+                        </div>
+                    </div>
 
-                <div class="grid grid-cols-3 gap-4">
-                    <div><label class="label-text">เบอร์ใยติดป้าย (Twine on Label)</label><input class="input-box" value="0.30 mm"></div>
-                    <div class="col-span-2"><label class="label-text">รหัสสีหู (Ear Color Code)</label><select class="input-box text-yellow-600 font-bold"><option>● EAR-YELLOW-02</option></select></div>
-                </div>
-
-                <!-- Specification Section -->
-                <div class="border rounded-lg p-4 bg-gray-50/50">
-                    <div class="font-bold text-xs mb-3 flex items-center gap-2">⚙ รายละเอียดสเปกสินค้า (ช่วงตรวจสอบขั้นต่ำ - ขั้นสูง)</div>
-                    <div class="spec-table-header"><span>หัวข้อรายการสเปก</span><span class="text-center">ค่าต่ำสุด (Min)</span><span class="text-center">ค่าสูงสุด (Max)</span></div>
-                    <div class="spec-row text-xs"><span>1. เบอร์ใยผลิต</span><select class="input-box"><option>0.10 mm</option></select><select class="input-box"><option>0.90 mm</option></select></div>
-                    <div class="spec-row text-xs"><span>2. ขนาดตา</span><input class="input-box" value="1.50"><input class="input-box" value="5.00"></div>
-                    <div class="spec-row text-xs"><span>3. จำนวนตา</span><input class="input-box" value="50.00"><input class="input-box" value="200.00"></div>
-                    <div class="spec-row text-xs"><span>4. ความยาว</span><input class="input-box" value="100.00"><input class="input-box" value="600.00"></div>
-                    <div class="spec-row text-xs"><span>5. นน.ต่อผืน</span><input class="input-box" value="1.20"><input class="input-box" value="15.00"></div>
-                </div>
-            </div>
-
-            <!-- Right Column -->
-            <div class="space-y-4">
-                <div class="grid grid-cols-2 gap-4">
-                    <div><label class="label-text">รหัสป้าย *</label><select class="input-box"><option>TAG-01A</option></select></div>
-                    <div><label class="label-text">รหัสป้ายเก่า (ถ้ามี)</label><input class="input-box" value="TG"></div>
-                </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div><label class="label-text">เงื่อน (Knot)</label><select class="input-box"><option>เงื่อนคู่ (Double Knot)</option></select></div>
-                    <div><label class="label-text">ประเภทการอบ (Type)</label><select class="input-box"><option>อบร้อน (Heat Set)</option></select></div>
-                </div>
-                <div class="border border-amber-400 bg-amber-50 p-3 rounded">
-                    <label class="label-text text-amber-800">รุ่น (Model / Series) *</label>
-                    <select class="input-box mt-1"><option>500 g / spool</option></select>
-                    <p class="text-[9px] text-amber-700 mt-1">! บังคับกรอกสำหรับ ด้าย/สายเย็น/เชือก</p>
-                </div>
-                <div><label class="label-text">ประเภทการรุม (Trammeling Type)</label><select class="input-box"><option>All (ทุกประเภทการรุม)</option></select></div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div><label class="label-text">วันที่ประกาศใช้</label><input type="date" class="input-box" value="2026-06-24"></div>
-                    <div><label class="label-text">วันที่หมดอายุ</label><input type="date" class="input-box" value="2030-01-01"></div>
+                    <div class="border rounded-xl p-4 bg-gray-50">
+                        <div class="section-title">เงื่อนไขเพิ่มเติม</div>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="label-text">เงื่อน (Knot)</label>
+                                <select class="input-box"><option>DK (Double Knot)</option></select>
+                            </div>
+                            <div>
+                                <label class="label-text">ประเภทการอบ (Type)</label>
+                                <select class="input-box"><option>อบ YOKO</option></select>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="label-text">วันที่ประกาศใช้</label>
+                                    <input type="date" class="input-box" value="2026-06-24">
+                                </div>
+                                <div>
+                                    <label class="label-text">วันที่หมดอายุ</label>
+                                    <input type="date" class="input-box" value="2030-01-01">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Footer -->
-    <div class="p-4 border-t flex justify-end gap-3 bg-gray-50">
-        <button class="px-6 py-2 border rounded text-sm font-bold text-gray-600 bg-white">ยกเลิก</button>
-        <button class="px-6 py-2 bg-green-500 text-white rounded text-sm font-bold flex items-center gap-2">✔ บันทึกเงื่อนไขมาตรฐาน</button>
+        <div class="p-4 border-t flex justify-end gap-3 bg-gray-50">
+            <button class="px-6 py-2 border rounded-lg text-sm bg-white hover:bg-gray-100">ยกเลิก</button>
+            <button class="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-bold">✔ บันทึกเงื่อนไขมาตรฐาน</button>
+        </div>
     </div>
 </div>
 
