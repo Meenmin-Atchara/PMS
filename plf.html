@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: sans-serif; background-color: #f3f4f6; margin: 0; }
+        .nav-wrap { max-width: 1050px; margin: 0 auto; }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+<!-- nav bar -->
+<nav class="bg-gray-800 text-white p-4 shadow-md">
+    <div class="nav-wrap flex gap-8 text-sm overflow-x-auto whitespace-nowrap">
+        <a href="index.html" class="hover:text-green-400">เพิ่มมาตรฐานเงื่อนไขการนำบรรจุภัณฑ์ไปใช้</a>
+        <a href="ProductTagManage.html" class="hover:text-green-400">มาตรฐานเงื่อนไขการใช้ป้ายสินค้า</a>
+        <a href="plf.html" class="font-bold border-b-2 border-green-400 pb-1">รูปแบบการพิมพ์ป้ายสินค้า</a>
+        <a href="pfs.html" class="hover:text-green-400">ผูกเงื่อนไขรูปแบบการพิมพ์ป้ายสินค้า</a>
+    </div>
+</nav>
+
+<div class="p-10">
+    <div class="max-w-5xl mx-auto bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200">
+        <!-- Header -->
+        <div class="bg-emerald-500 text-white p-4 font-bold flex justify-between items-center">
+            <span>✚ เพิ่มข้อมูล รูปแบบการพิมพ์ข้อมูลในป้ายสินค้า</span>
+            <button class="text-white">✕</button>
+        </div>
+
+        <div class="p-6 grid grid-cols-12 gap-8">
+            <!-- ฝั่งซ้าย: ข้อมูลรูปแบบ -->
+            <div class="col-span-6 space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">รหัสรูปแบบการพิมพ์ป้ายสินค้า</label>
+                    <div class="flex gap-2">
+                        <input type="text" class="w-full border rounded p-2 text-sm bg-gray-50" value="01">
+                        <button class="bg-gray-100 border px-3 py-1 text-xs rounded hover:bg-gray-200 whitespace-nowrap">⚡ Auto Running 0-9, A-Z</button>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">รายละเอียดรูปแบบการพิมพ์ป้ายสินค้า (TH) *</label>
+                    <input type="text" class="w-full border border-emerald-500 rounded p-2 text-sm" value="ประเภทที่ 1 ขายต่าง ทุกโซน">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">รายละเอียดรูปแบบการพิมพ์ป้ายสินค้า (EN) (กรอกหรือไม่กรอกก็ได้)</label>
+                    <input type="text" class="w-full border rounded p-2 text-sm" value="International Sales - All Regions">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">หมายเหตุ (Remark)</label>
+                    <input type="text" class="w-full border rounded p-2 text-sm" value="สินค้ากลุ่ม ต่างประเทศ">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-1">วันที่ประกาศใช้</label>
+                        <input type="date" class="w-full border rounded p-2 text-sm" value="2026-06-19">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-1">วันที่หมดอายุ</label>
+                        <input type="date" class="w-full border rounded p-2 text-sm" value="2030-01-01">
+                    </div>
+                </div>
+            </div>
+
+            <!-- ฝั่งขวา: ตารางรายละเอียด -->
+            <div class="col-span-6 border rounded-lg p-4 bg-gray-50">
+                <div class="flex justify-between items-center mb-4">
+                    <div class="font-bold text-xs flex items-center gap-2 text-gray-700">⚙ ลำดับรายละเอียดการพิมพ์</div>
+                    <span class="text-[10px] text-gray-500 bg-white border px-2 py-1 rounded">อ้างอิงประเภทที่ 1</span>
+                </div>
+                <table class="w-full text-xs text-left border-collapse">
+                    <thead class="text-gray-500 border-b">
+                        <tr>
+                            <th class="pb-2">หัวข้อรายละเอียด (TH)</th>
+                            <th class="pb-2">หัวข้อรายละเอียด (EN)</th>
+                            <th class="pb-2 text-center">แสดงผล?</th>
+                            <th class="pb-2">ลำดับการพิมพ์</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y text-gray-600">
+                        <tr class="h-10"><td>เบอร์ใย</td><td>TWINE</td><td class="text-center"><input type="checkbox" checked class="accent-emerald-600"></td><td><input type="number" class="w-12 border p-1 rounded text-center" value="1"></td></tr>
+                        <tr class="h-10"><td>ขนาดตา</td><td>MESH</td><td class="text-center"><input type="checkbox" checked class="accent-emerald-600"></td><td><input type="number" class="w-12 border p-1 rounded text-center" value="2"></td></tr>
+                        <tr class="h-10"><td>ความลึก</td><td>DEPTH</td><td class="text-center"><input type="checkbox" checked class="accent-emerald-600"></td><td><input type="number" class="w-12 border p-1 rounded text-center" value="3"></td></tr>
+                        <tr class="h-10"><td>ความยาว</td><td>LENGTH</td><td class="text-center"><input type="checkbox" checked class="accent-emerald-600"></td><td><input type="number" class="w-12 border p-1 rounded text-center" value="4"></td></tr>
+                        <tr class="h-10"><td>โค้ด สี</td><td>COLOR</td><td class="text-center"><input type="checkbox" checked class="accent-emerald-600"></td><td><input type="number" class="w-12 border p-1 rounded text-center" value="5"></td></tr>
+                        <tr class="h-10"><td>การอบ</td><td>TYPE</td><td class="text-center"><input type="checkbox" checked class="accent-emerald-600"></td><td><input type="number" class="w-12 border p-1 rounded text-center" value="6"></td></tr>
+                        <tr class="h-10"><td>น้ำหนัก</td><td>WEIGHT</td><td class="text-center"><input type="checkbox" class="accent-emerald-600"></td><td><input type="number" class="w-12 border p-1 rounded text-center"></td></tr>
+                        <tr class="h-10"><td>อ้างอิง</td><td>REF NO.</td><td class="text-center"><input type="checkbox" checked class="accent-emerald-600"></td><td><input type="number" class="w-12 border p-1 rounded text-center" value="7"></td></tr>
+                        <tr class="h-10"><td>อธิบาย,ลักษณะ</td><td>DETAIL</td><td class="text-center"><input type="checkbox" class="accent-emerald-600"></td><td><input type="number" class="w-12 border p-1 rounded text-center"></td></tr>
+                        <tr class="h-10"><td>รุ่นด้าย</td><td>MODEL</td><td class="text-center"><input type="checkbox" class="accent-emerald-600"></td><td><input type="number" class="w-12 border p-1 rounded text-center"></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="p-4 bg-gray-50 border-t flex justify-end gap-3">
+            <button class="px-6 py-2 border rounded text-sm bg-white hover:bg-gray-100">ยกเลิก</button>
+            <button class="px-6 py-2 bg-emerald-600 text-white rounded text-sm font-bold flex items-center gap-2 hover:bg-emerald-700">✔ บันทึกข้อมูล</button>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
