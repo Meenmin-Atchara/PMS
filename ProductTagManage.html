@@ -2,244 +2,1132 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
+    <title>KKF SALES MASTER DATA - Demo</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/alpinejs/3.17.2/cdn.min.js"></script>
+
     <style>
         body { font-family: sans-serif; background-color: #f3f4f6; margin: 0; }
-        .page-wrap { max-width: 1100px; margin: 20px auto; padding: 0 16px; }
-        .modal-container { background: white; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.08); overflow: hidden; }
-        .header-bg { background: linear-gradient(90deg, #10b981, #059669); color: white; padding: 16px 20px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
-        .input-box { border: 1px solid #d1d5db; padding: 10px 12px; border-radius: 8px; width: 100%; font-size: 13px; background-color: #fff; }
-        .label-text { font-size: 11px; font-weight: bold; color: #374151; margin-bottom: 6px; display: block; text-transform: uppercase; letter-spacing: .02em; }
-        .section-title { font-size: 14px; font-weight: 700; color: #111827; margin-bottom: 12px; }
-        .spec-row { display: grid; grid-template-columns: 1.7fr 1fr 1fr; gap: 10px; margin-bottom: 8px; align-items: center; }
+        .sidebar { width: 280px; background-color: #1e293b; min-height: 100vh; color: white; position: sticky; top: 0; }
+        .menu-item { padding: 12px 20px; font-size: 13px; cursor: pointer; transition: 0.2s; }
+        .menu-item:hover { background-color: #334155; }
+        .menu-current { background-color: #4f46e5 !important; font-weight: bold; }
+        .content-area { flex: 1; padding: 20px; }
+        .page-wrap { max-width: 1150px; margin: 20px auto; padding: 0 16px; }
+        .page-title { background: #e5e7eb; color: #111827; padding: 14px 18px; border-radius: 10px; font-size: 16px; font-weight: 700; display:flex; justify-content:space-between; align-items:center; }
+        .modal-container { max-width: 1100px; margin: 20px auto; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        .header-bg { background-color: #10b981; color: white; padding: 15px 20px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
+        .input-box { border: 1px solid #d1d5db; padding: 8px; border-radius: 4px; width: 100%; font-size: 13px; background-color: #f9fafb; }
+        .label-text { font-size: 11px; font-weight: bold; margin-bottom: 3px; display: block; color: #4b5563; text-transform: uppercase; }
+        .filter-header { font-size: 13px; font-weight: bold; color: #1e40af; margin-bottom: 12px; display: flex; align-items: center; border-bottom: 1px solid #e5e7eb; padding-bottom: 8px; }
+        .spec-row { display: grid; grid-template-columns: 150px 1fr 20px 1fr 60px; gap: 8px; align-items: center; margin-bottom: 6px; }
         .tag { display: inline-flex; align-items: center; gap: 6px; background: #dbeafe; color: #1d4ed8; border: 1px solid #bfdbfe; border-radius: 9999px; padding: 4px 10px; font-size: 11px; font-weight: 600; }
+        .data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .data-table th { background: #f1f5f9; text-align: left; padding: 10px 12px; font-size: 11px; text-transform: uppercase; color: #475569; border-bottom: 2px solid #e2e8f0; }
+        .data-table td { padding: 10px 12px; border-bottom: 1px solid #eef1f5; vertical-align: middle; }
+        .data-table tr:hover td { background: #f8fafc; }
+        .badge-active { background:#dcfce7; color:#166534; padding:3px 10px; border-radius:9999px; font-size:11px; font-weight:700; }
+        .badge-expired { background:#fee2e2; color:#991b1b; padding:3px 10px; border-radius:9999px; font-size:11px; font-weight:700; }
+        .icon-btn { padding:5px 9px; border-radius:6px; font-size:11px; font-weight:600; cursor:pointer; border:1px solid transparent; }
+        .api-note { display:inline-flex; align-items:center; gap:4px; font-size:10px; color:#7c3aed; background:#f5f3ff; border:1px solid #ddd6fe; padding:1px 7px; border-radius:9999px; margin-left:6px; font-weight:600; text-transform:none; }
+        .local-note { display:inline-flex; align-items:center; gap:4px; font-size:10px; color:#0369a1; background:#f0f9ff; border:1px solid #bae6fd; padding:1px 7px; border-radius:9999px; margin-left:6px; font-weight:600; text-transform:none; }
+        .flow-banner { background:#eff6ff; border:1px solid #bfdbfe; color:#1e40af; font-size:12px; padding:10px 14px; border-radius:8px; margin-bottom:14px; }
+        .group-btn { padding:8px 12px; border-radius:6px; font-size:12px; border:1px solid #e5e7eb; cursor:pointer; background:white; text-align:left; }
+        .group-btn.active { background:#eef2ff; border-color:#6366f1; color:#4338ca; font-weight:700; }
+        .field-chip { padding:6px 10px; border-radius:6px; font-size:11px; font-weight:700; border:1px solid #d1d5db; background:#f9fafb; cursor:pointer; }
+        .field-chip:hover { background:#e0e7ff; border-color:#818cf8; }
         [x-cloak] { display: none !important; }
+        .toast { position: fixed; bottom: 24px; right: 24px; background:#111827; color:white; padding:14px 20px; border-radius:8px; font-size:13px; box-shadow:0 8px 24px rgba(0,0,0,.25); z-index:60; display:flex; align-items:center; gap:10px; max-width:360px; }
     </style>
 </head>
-<body x-data="{
-    productTypes: ['M : MONO NET', 'N : MULTI FILAMENT NET', 'X : MONO LINE','Y : NYLON TWINE'],
-    selectedProducts: ['M : MONO NET','N : MULTI FILAMENT NET','X : MONO LINE'],
-    trammelingTypes: ['DT', 'ST', 'OT'],
-    selectedTrammelingTypes: [],
-    twineSeries: ['500 g / spool', '1 kg / spool', '2 kg / spool'],
-    selectedTwineSeries: [],
-    toggleProduct(type) {
-        if (!type) return;
-        if (this.selectedProducts.includes(type)) {
-            this.selectedProducts = this.selectedProducts.filter(v => v !== type);
-        } else {
-            this.selectedProducts.push(type);
-        }
-    },
-    toggleTrammeling(type) {
-        if (!type) return;
-        if (this.selectedTrammelingTypes.includes(type)) {
-            this.selectedTrammelingTypes = this.selectedTrammelingTypes.filter(v => v !== type);
-        } else {
-            this.selectedTrammelingTypes.push(type);
-        }
-    },
-    toggleTwine(type) {
-        if (!type) return;
-        if (this.selectedTwineSeries.includes(type)) {
-            this.selectedTwineSeries = this.selectedTwineSeries.filter(v => v !== type);
-        } else {
-            this.selectedTwineSeries.push(type);
-        }
-    }
-}">
+<body class="flex" x-data="app()">
 
-<nav class="bg-gray-800 text-white p-4 shadow-md">
-    <div class="page-wrap flex gap-8 text-sm overflow-x-auto whitespace-nowrap">
-        <a href="index.html" class="hover:text-green-400">เพิ่มมาตรฐานเงื่อนไขการนำบรรจุภัณฑ์ไปใช้</a>
-        <a href="ProductTagManage.html" class="font-bold border-b-2 border-green-400 pb-1">มาตรฐานเงื่อนไขการใช้ป้ายสินค้า</a>
-        <a href="plf.html" class="hover:text-green-400">รูปแบบการพิมพ์ป้ายสินค้า</a>
-        <a href="pfs.html" class="hover:text-green-400">ผูกเงื่อนไขรูปแบบการพิมพ์ป้ายสินค้า</a>
-    </div>
-</nav>
+<!-- ===== ส่วนเมนู ===== -->
+<aside class="sidebar">
+    <div class="p-4 font-bold text-center border-b border-gray-700">KKF SALES MASTER DATA</div>
+    <div class="menu-item" @click="stub()">หน้าหลัก</div>
+    <div class="menu-item" @click="stub()">Setup</div>
 
-<div class="page-wrap">
-    <div class="modal-container">
-        <div class="header-bg">
-            <span class="flex items-center gap-2">✚ เพิ่มมาตรฐานเงื่อนไขการใช้ป้ายสินค้า</span>
-            <span>✕</span>
+    <div class="bg-gray-900">
+        <div class="menu-item font-bold border-b border-gray-700" @click="sidebarOpen.packaging2 = !sidebarOpen.packaging2">
+            มตฐ.บรรจุภัณฑ์สินค้า
         </div>
 
-        <div class="p-6">
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div class="lg:col-span-2 space-y-5">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label class="label-text">ประเภทการขาย *</label>
-                            <select class="input-box"><option>ขายต่างประเทศ (Export Sales)</option></select>
-                        </div>
-                        <div>
-                            <label class="label-text">รหัสลูกค้า (Customer Code)</label>
-                            <select class="input-box"><option>All (ทุกรหัสลูกค้า)</option></select>
-                        </div>
-                    </div>
+        <div class="menu-item" @click="sidebarOpen.packaging = !sidebarOpen.packaging">1 ป้ายสินค้า</div>
+        <div class="pl-4" x-show="sidebarOpen.packaging" x-cloak>
+            <div class="block menu-item text-xs" :class="view.startsWith('brand') ? 'menu-current' : ''" @click="goBrandList()">1.1 ข้อมูล Brand สินค้า</div>
+            <div class="block menu-item text-xs" :class="view === 'tagSync' ? 'menu-current' : ''" @click="goTagSync()">1.2 ข้อมูลป้ายสินค้า</div>
+            <div class="block menu-item text-xs" :class="view.startsWith('tag') && view !== 'tagSync' ? 'menu-current' : ''" @click="goTagList()">1.3 มตฐ.เงื่อนไขการใช้ป้ายสินค้า</div>
+            <div class="block menu-item text-xs" :class="view.startsWith('printFormat') ? 'menu-current' : ''" @click="goPrintFormatList()">1.4 รูปแบบการพิมพ์ข้อมูลในป้าย</div>
+            <div class="block menu-item text-xs" @click="stub()">1.5 Set รูปแบบการพิมพ์ป้ายสินค้า</div>
+        </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label class="label-text">ระดับคุณภาพ </label>
-                            <select class="input-box"><option>P (Premium)</option></select>
-                        </div>
+        <div class="menu-item" @click="stub('ข้อมูลรหัสวัสดุนี้ sync มาจากระบบจัดซื้อผ่าน API')">2 ถุงบรรจุสินค้า</div>
+        <div class="menu-item" @click="stub('ข้อมูลรหัสวัสดุนี้ sync มาจากระบบจัดซื้อผ่าน API')">3 เชือกและฟาง</div>
+        <div class="menu-item" @click="stub('ข้อมูลรหัสวัสดุนี้ sync มาจากระบบจัดซื้อผ่าน API')">4 STICKER</div>
+        <div class="menu-item" @click="stub()">5 การพับมัด</div>
+        <div class="menu-item" @click="stub()">6 ลวด/เทป มัดปากถุง</div>
+        <div class="menu-item" @click="stub()">7 ผ้าใบและแถบสี</div>
+        <div class="menu-item" @click="stub('ข้อมูลรหัสวัสดุนี้ sync มาจากระบบจัดซื้อผ่าน API')">8 สายรัดกระสอบ</div>
+        <div class="menu-item" :class="view.startsWith('headerLabel') ? 'menu-current' : ''" @click="goHeaderLabelList()">9 รูปแบบการพิมพ์ป้ายหัวห่อ</div>
 
-                        <div>
-                            <label class="label-text">ประเภทสินค้า (Product Type)</label>
-                            <div class="input-box min-h-[44px] flex flex-wrap gap-2 items-center">
-                                <template x-for="item in selectedProducts" :key="item">
-                                    <span class="tag">
-                                        <span x-text="item"></span>
-                                        <button type="button" class="text-blue-700 font-bold" @click="toggleProduct(item)">×</button>
-                                    </span>
-                                </template>
-                                <template x-if="selectedProducts.length === 0">
-                                    <span class="text-xs text-gray-500">All (ทั้งหมด)</span>
-                                </template>
-                                <select class="bg-transparent outline-none text-sm flex-1 min-w-[140px]" @change="toggleProduct($event.target.value); $event.target.value='';">
-                                    <option value=""></option>
-                                    <template x-for="type in productTypes" :key="type">
-                                        <option :value="type" x-text="type"></option>
-                                    </template>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
+        <div class="menu-item" @click="sidebarOpen.packagingUsage = !sidebarOpen.packagingUsage">
+            10 มาตรฐานการนำบรรจุภัณฑ์ไปใช้งาน
+        </div>
+        <div class="pl-4" x-show="sidebarOpen.packagingUsage" x-cloak>
+            <div class="block menu-item text-xs" :class="view.startsWith('usage') ? 'menu-current' : ''" @click="goUsageList()">10.1 มตฐ.เงื่อนไขการใช้บรรจุภัณฑ์</div>
+        </div>
+    </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="group">
-                            <label class="label-text">ประเภทการรุม (Trammeling Type)</label>
-                            <div class="relative">
-                                <div class="input-box min-h-[44px] flex flex-wrap gap-2 items-center">
-                                    <template x-for="item in selectedTrammelingTypes" :key="item">
-                                        <span class="tag">
-                                            <span x-text="item"></span>
-                                            <button type="button" class="text-blue-700 font-bold" @click="toggleTrammeling(item)">×</button>
-                                        </span>
-                                    </template>
-                                    <template x-if="selectedTrammelingTypes.length === 0">
-                                        <span class="text-xs text-gray-500">All (ทั้งหมด)</span>
-                                    </template>
-                                    <select class="bg-transparent outline-none text-sm flex-1 min-w-[140px]" @change="toggleTrammeling($event.target.value); $event.target.value='';">
-                                        <option value=""></option>
-                                        <template x-for="item in trammelingTypes" :key="item">
-                                            <option :value="item" x-text="item"></option>
-                                        </template>
-                                    </select>
-                                </div>
-                                <div class="hidden group-hover:block absolute left-0 top-full mt-2 z-10 bg-gray-800 text-white text-xs rounded px-3 py-2 whitespace-nowrap shadow-lg">
-                                    ข้อมูลสำหรับสินค้าประเภทอวนรุม
-                                </div>
-                            </div>
-                        </div>
+    <div class="menu-item" @click="stub()">11 สอบถาม มตฐ.การบรรจุสินค้า</div>
+    <div class="menu-item" @click="stub()">12 ตั้งค่า</div>
+</aside>
 
-                        <div class="group">
-                            <label class="label-text">รุ่น (Twine Series)</label>
-                            <div class="relative">
-                                <div class="input-box min-h-[44px] flex flex-wrap gap-2 items-center">
-                                    <template x-for="item in selectedTwineSeries" :key="item">
-                                        <span class="tag">
-                                            <span x-text="item"></span>
-                                            <button type="button" class="text-blue-700 font-bold" @click="toggleTwine(item)">×</button>
-                                        </span>
-                                    </template>
-                                    <template x-if="selectedTwineSeries.length === 0">
-                                        <span class="text-xs text-gray-500">All (ทั้งหมด)</span>
-                                    </template>
-                                    <select class="bg-transparent outline-none text-sm flex-1 min-w-[140px]" @change="toggleTwine($event.target.value); $event.target.value='';">
-                                        <option value=""></option>
-                                        <template x-for="item in twineSeries" :key="item">
-                                            <option :value="item" x-text="item"></option>
-                                        </template>
-                                    </select>
-                                </div>
-                                <div class="hidden group-hover:block absolute left-0 top-full mt-2 z-10 bg-gray-800 text-white text-xs rounded px-3 py-2 whitespace-nowrap shadow-lg">
-                                    ข้อมูลสำหรับสินค้าด้าย สายเอ็นและเชือก
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+<main class="content-area">
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label class="label-text">เบอร์ใยติดป้าย (Twine on Label)</label>
-                            <input class="input-box" value="0.30 mm">
-                        </div>
-                        <div>
-                            <label class="label-text">รหัสสีหู (Ear Color Code)</label>
-                            <select class="input-box"><option>YLM90</option></select>
-                        </div>
-                    </div>
-
-                    <div class="border rounded-xl p-4 bg-gray-50">
-                        <div class="section-title flex items-center gap-2">⚙ รายละเอียดสเปคสินค้า</div>
-                        <div class="grid grid-cols-3 text-[10px] text-gray-500 mb-2">
-                            <span>หัวข้อรายการสเปก</span>
-                            <span class="text-center">ค่าต่ำสุด (Min)</span>
-                            <span class="text-center">ค่าสูงสุด (Max)</span>
-                        </div>
-                        <div class="spec-row text-xs"><span>1. เบอร์ใยผลิต</span><select class="input-box"><option>0.10 mm</option></select><select class="input-box"><option>0.90 mm</option></select></div>
-                        <div class="spec-row text-xs"><span>2. ขนาดตา</span><input class="input-box" value="1.50"><input class="input-box" value="5.00"></div>
-                        <div class="spec-row text-xs"><span>3. จำนวนตา</span><input class="input-box" value="50.00"><input class="input-box" value="200.00"></div>
-                        <div class="spec-row text-xs"><span>4. ความยาว</span><input class="input-box" value="100.00"><input class="input-box" value="600.00"></div>
-                        <div class="spec-row text-xs"><span>5. นน.ต่อผืน</span><input class="input-box" value="1.20"><input class="input-box" value="15.00"></div>
-                    </div>
+    <!-- ============ 1.1 LIST: ข้อมูล Brand สินค้า ============ -->
+    <template x-if="view === 'brandList'">
+        <div>
+            <div class="page-wrap">
+                <div class="page-title">
+                    <span>ข้อมูล Brand สินค้า</span>
+                    <button @click="openNewBrandForm()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-4 py-2 rounded-lg">+ เพิ่มข้อมูล Brand</button>
                 </div>
-
-                <div class="space-y-5">
-                    <div class="border rounded-xl p-4 bg-gray-50">
-                        <div class="section-title">ข้อมูลป้ายหลัก</div>
-                        <div class="space-y-4">
-                            <div>
-                                <label class="label-text">รหัส Brand สินค้า *</label>
-                                <select class="input-box"><option>08 : เรือใบทอง (Golden Ship)</option></select>
-                            </div>
-                            <div>
-                                <label class="label-text">รหัสป้าย *</label>
-                                <select class="input-box"><option>A01L : ป้ายเรือใบทอง</option></select>
-                            </div>
-                            <div>
-                                <label class="label-text">รหัสป้ายเก่า (ถ้ามี)</label>
-                                <input class="input-box bg-gray-100 text-gray-600 cursor-not-allowed" value="72" readonly>
-                            </div>
-                        </div>
+            </div>
+            <div class="page-wrap">
+                <div class="flow-banner">▸ Brand เป็นข้อมูลที่จัดการภายในระบบนี้เอง (ไม่ได้ sync จากระบบจัดซื้อ) รหัสจะถูกสร้างอัตโนมัติตามหลักการรันรหัส แล้วนำไปใช้เลือกในเมนู 1.3 และ 10.1</div>
+                <div class="bg-white rounded-lg shadow-sm p-4">
+                    <div class="flex justify-between items-center mb-3">
+                        <input type="text" x-model="brandSearch" placeholder="ค้นหา รหัส / รายละเอียด Brand..." class="input-box max-w-xs">
+                        <span class="text-xs text-gray-500" x-text="`ทั้งหมด ${filteredBrands.length} รายการ`"></span>
                     </div>
-
-                    <div class="border rounded-xl p-4 bg-gray-50">
-                        <div class="section-title">เงื่อนไขเพิ่มเติม</div>
-                        <div class="space-y-4">
-                            <div>
-                                <label class="label-text">เงื่อน (Knot)</label>
-                                <select class="input-box"><option>DK (Double Knot)</option></select>
-                            </div>
-                            <div>
-                                <label class="label-text">ประเภทการอบ (Type)</label>
-                                <select class="input-box"><option>อบ YOKO</option></select>
-                            </div>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label class="label-text">วันที่ประกาศใช้</label>
-                                    <input type="date" class="input-box" value="2026-06-24">
-                                </div>
-                                <div>
-                                    <label class="label-text">วันที่หมดอายุ</label>
-                                    <input type="date" class="input-box" value="2030-01-01">
-                                </div>
-                            </div>
-                        </div>
+                    <div class="overflow-x-auto">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>รหัส BRAND</th>
+                                    <th>ประเภท / Subbrand</th>
+                                    <th>รายละเอียด (TH)</th>
+                                    <th>รายละเอียด (EN)</th>
+                                    <th>ประกาศใช้ - หมดอายุ</th>
+                                    <th>สถานะ</th>
+                                    <th class="text-right">การจัดการ</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <template x-for="rec in filteredBrands" :key="rec.id">
+                                    <tr>
+                                        <td class="font-semibold" x-text="rec.code"></td>
+                                        <td><span class="tag" x-text="rec.brandType"></span> <span class="text-xs text-gray-500" x-text="rec.subBrandType"></span></td>
+                                        <td x-text="rec.nameTh"></td>
+                                        <td x-text="rec.nameEn"></td>
+                                        <td class="text-xs" x-text="rec.effectiveDate + ' → ' + (rec.expireDate || 'ไม่มีกำหนด')"></td>
+                                        <td><span :class="isActive(rec) ? 'badge-active' : 'badge-expired'" x-text="isActive(rec) ? 'ใช้งานอยู่' : 'หมดอายุ'"></span></td>
+                                        <td class="text-right whitespace-nowrap">
+                                            <button @click="viewDetail(rec, 'brand')" class="icon-btn bg-slate-100 text-slate-700 hover:bg-slate-200">ดูรายละเอียด</button>
+                                            <button @click="deleteRecord('brands', rec)" class="icon-btn bg-red-50 text-red-600 hover:bg-red-100">ลบ</button>
+                                        </td>
+                                    </tr>
+                                </template>
+                                <tr x-show="filteredBrands.length === 0"><td colspan="7" class="text-center text-gray-400 py-8 text-sm">ไม่พบข้อมูลที่ค้นหา</td></tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
         </div>
+    </template>
 
-        <div class="p-4 border-t flex justify-end gap-3 bg-gray-50">
-            <button class="px-6 py-2 border rounded-lg text-sm bg-white hover:bg-gray-100">ยกเลิก</button>
-            <button class="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-bold">✔ บันทึกเงื่อนไขมาตรฐาน</button>
+    <!-- ============ 1.1 FORM ============ -->
+    <template x-if="view === 'brandForm'">
+        <div class="page-wrap">
+            <div class="modal-container">
+                <div class="header-bg"><span>เพิ่มข้อมูล Brand สินค้า</span><button @click="goBrandList()" class="text-white/90 hover:text-white">✕</button></div>
+                <div class="p-6 grid grid-cols-2 gap-8">
+                    <div class="space-y-4">
+                        <div><label class="label-text">ประเภท BRAND *</label>
+                            <select class="input-box" x-model="brandForm.brandType" @change="onBrandTypeChange()">
+                                <option>KKF</option><option>Customer</option>
+                            </select>
+                        </div>
+                        <div><label class="label-text">ประเภท SUBBRAND *</label>
+                            <select class="input-box" x-model="brandForm.subBrandType" @change="onSubBrandChange()">
+                                <template x-for="s in subBrandOptionsFor(brandForm.brandType)" :key="s"><option x-text="s"></option></template>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="label-text">รหัส BRAND *</label>
+                            <input class="input-box font-bold" x-model="brandForm.code" readonly>
+                            <p class="text-[11px] text-gray-400 mt-1">ระบบจะสร้างรหัสอัตโนมัติแบบ 2 หลัก: หลักแรก = Subbrand, หลักสอง = Running</p>
+                        </div>
+                        <div><label class="label-text">รายละเอียด (ไทย) *</label><input class="input-box" x-model="brandForm.nameTh" placeholder="เช่น เรือใบทอง พื้นแดง"></div>
+                        <div><label class="label-text">รายละเอียด (อังกฤษ) *</label><input class="input-box" x-model="brandForm.nameEn" placeholder="เช่น Golden Ship On Red"></div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div><label class="label-text">วันที่ประกาศใช้</label><input type="date" class="input-box" x-model="brandForm.effectiveDate"></div>
+                            <div><label class="label-text">วันที่หมดอายุ</label><input type="date" class="input-box" x-model="brandForm.expireDate"></div>
+                        </div>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="border rounded-lg p-4 text-center">
+                            <p class="text-xs text-gray-500 mb-2">เลือกรูปภาพ (ไม่เกิน 2000PX / 2MB)</p>
+                            <input type="file" class="input-box text-xs">
+                        </div>
+                        <div class="bg-gray-50 border rounded-lg p-4 text-xs text-gray-600 space-y-1">
+                            <p class="font-bold text-gray-700 mb-2">หลักการรันรหัส Brand</p>
+                            <p>• KKF: Primary Brand / Secondary Brand / Alternative Brand</p>
+                            <p>• Customer: CO-Brand / OEM</p>
+                            <p>• รหัส 2 หลัก: หลักแรก = Subbrand, หลักสอง = Running</p>
+                            <p>• ห้ามใช้รหัสซ้ำ และไม่ใช้ 00, 0O / S5, 5S / B8, 8B</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="p-4 border-t flex justify-end gap-2 bg-gray-50">
+                    <button @click="goBrandList()" class="px-6 py-2 border rounded text-sm">ยกเลิก</button>
+                    <button @click="saveBrand()" class="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded text-sm font-bold">บันทึก</button>
+                </div>
+            </div>
         </div>
+    </template>
+
+    <!-- ============ 1.2 ข้อมูลป้ายสินค้า (Synced view) ============ -->
+    <template x-if="view === 'tagSync'">
+        <div class="page-wrap">
+            <div class="page-title">
+                <span>ข้อมูลป้ายสินค้า</span>
+                <button @click="syncTags()" class="bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold px-4 py-2 rounded-lg">⟳ ซิงค์ข้อมูลจากระบบจัดซื้อ</button>
+            </div>
+            <div class="flow-banner">▸ รหัสและรายละเอียดป้ายสินค้าทั้งหมด <b>sync มาจากระบบจัดซื้อผ่าน API</b> โดยอัตโนมัติ ไม่สามารถเพิ่ม/แก้ไขในระบบนี้ได้โดยตรง — ใช้เพื่อดูอ้างอิงก่อนไปตั้งค่าที่เมนู 1.3</div>
+            <div class="bg-white rounded-lg shadow-sm p-4 mt-3">
+                <div class="overflow-x-auto">
+                    <table class="data-table">
+                        <thead><tr><th>Brand</th><th>รหัสป้ายสินค้า</th><th>แหล่งที่มา</th></tr></thead>
+                        <tbody>
+                            <template x-for="(row, idx) in allSyncedTags" :key="idx">
+                                <tr>
+                                    <td x-text="row.brand"></td>
+                                    <td class="font-semibold" x-text="row.tag"></td>
+                                    <td><span class="api-note">⇄ API จัดซื้อ</span></td>
+                                </tr>
+                            </template>
+                            <tr x-show="allSyncedTags.length === 0"><td colspan="3" class="text-center text-gray-400 py-8 text-sm">ยังไม่มีป้ายที่ sync — Brand ใหม่ต้องรอซิงค์จากระบบจัดซื้อ</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- ============ 1.3 LIST: มตฐ.เงื่อนไขการใช้ป้ายสินค้า ============ -->
+    <template x-if="view === 'tagList'">
+        <div>
+            <div class="page-wrap">
+                <div class="page-title">
+                    <span>มาตรฐานเงื่อนไขการใช้ป้ายสินค้า</span>
+                    <button @click="openNewTagForm()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-4 py-2 rounded-lg">+ เพิ่มมาตรฐานใหม่</button>
+                </div>
+            </div>
+            <div class="page-wrap">
+                <div class="flow-banner">▸ กำหนดว่าป้ายสินค้าแต่ละใบใช้กับ การขาย/ลูกค้า/สเปกสินค้าแบบไหนได้บ้าง เมื่อกำหนดแล้ว ให้ไปผูกบรรจุภัณฑ์จริงที่เมนู <b>10.1</b></div>
+                <div class="bg-white rounded-lg shadow-sm p-4">
+                    <div class="flex justify-between items-center mb-3">
+                        <input type="text" x-model="tagSearch" placeholder="ค้นหา Brand / ป้าย / ลูกค้า..." class="input-box max-w-xs">
+                        <span class="text-xs text-gray-500" x-text="`ทั้งหมด ${filteredTagStandards.length} รายการ`"></span>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Brand / ป้ายสินค้า</th><th>ประเภทการขาย</th><th>ประเทศ</th><th>รหัสลูกค้า</th>
+                                    <th>ระดับคุณภาพ</th><th>ประกาศใช้ - หมดอายุ</th><th>สถานะ</th><th class="text-right">การจัดการ</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <template x-for="rec in filteredTagStandards" :key="rec.id">
+                                    <tr>
+                                        <td><div class="font-semibold text-gray-800" x-text="rec.brand"></div><div class="text-gray-500 text-xs" x-text="rec.tagName"></div></td>
+                                        <td x-text="rec.saleType"></td>
+                                        <td x-text="rec.country"></td>
+                                        <td x-text="rec.customer"></td>
+                                        <td x-text="rec.quality"></td>
+                                        <td class="text-xs" x-text="rec.effectiveDate + ' → ' + (rec.expireDate || 'ไม่มีกำหนด')"></td>
+                                        <td><span :class="isActive(rec) ? 'badge-active' : 'badge-expired'" x-text="isActive(rec) ? 'ใช้งานอยู่' : 'หมดอายุ'"></span></td>
+                                        <td class="text-right whitespace-nowrap">
+                                            <button @click="viewDetail(rec, 'tag')" class="icon-btn bg-slate-100 text-slate-700 hover:bg-slate-200">ดูรายละเอียด</button>
+                                            <button @click="deleteRecord('tagStandards', rec)" class="icon-btn bg-red-50 text-red-600 hover:bg-red-100">ลบ</button>
+                                        </td>
+                                    </tr>
+                                </template>
+                                <tr x-show="filteredTagStandards.length === 0"><td colspan="8" class="text-center text-gray-400 py-8 text-sm">ไม่พบข้อมูลที่ค้นหา</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- ============ 1.3 FORM ============ -->
+    <template x-if="view === 'tagForm'">
+        <div class="page-wrap">
+            <div class="modal-container">
+                <div class="header-bg">
+                    <span>เพิ่มมาตรฐานเงื่อนไขการใช้ป้ายสินค้า</span>
+                    <button @click="goTagList()" class="text-white/90 hover:text-white">✕</button>
+                </div>
+                <div class="p-6 grid grid-cols-2 gap-8">
+                    <div class="space-y-4">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div><label class="label-text">ประเภทการขาย *</label>
+                                <select class="input-box" x-model="tagForm.saleType">
+                                    <option>ขายในประเทศ (Domestic Sales)</option>
+                                    <option>ขายต่างประเทศ (Export Sales)</option>
+                                </select>
+                            </div>
+                            <div><label class="label-text">ประเทศ (Country Code)</label>
+                                <select class="input-box" x-model="tagForm.country">
+                                    <option>All (ทุกประเทศ)</option><option>Thailand</option><option>Myanmar</option><option>Vietnam</option>
+                                </select>
+                            </div>
+                            <div><label class="label-text">รหัสลูกค้า (Customer Code) <span class="api-note">⇄ API จัดซื้อ</span></label>
+                                <select class="input-box" x-model="tagForm.customer">
+                                    <option>All (ทุกรหัสลูกค้า)</option><option>C001</option><option>C002</option><option>C003</option>
+                                </select>
+                            </div>
+                            <div><label class="label-text">ระดับคุณภาพ</label>
+                                <select class="input-box" x-model="tagForm.quality"><option>P (Premium)</option><option>S (Standard)</option></select>
+                            </div>
+                            <div><label class="label-text">กลุ่มประเภทสินค้า (Product Group) <span class="api-note">⇄ API จัดซื้อ</span></label>
+                                <select class="input-box" x-model="tagForm.productGroup">
+                                    <option>All (ทุกกลุ่มประเภทสินค้า)</option><option>กลุ่มอวน (Net)</option><option>กลุ่มเชือก (Twine)</option><option>กลุ่มเอ็น (Line)</option>
+                                </select>
+                            </div>
+                            <div><label class="label-text">ประเภทสินค้า (Product Type)</label>
+                                <select class="input-box" x-model="tagForm.productType">
+                                    <option>All (ทั้งหมด)</option>
+                                    <template x-for="t in productTypes" :key="t"><option x-text="t"></option></template>
+                                </select>
+                            </div>
+                            <div><label class="label-text">ประเภทการรม (Trammeling Type)</label>
+                                <select class="input-box" x-model="tagForm.trammelingType">
+                                    <option>All (ทั้งหมด)</option>
+                                    <template x-for="t in trammelingTypes" :key="t"><option x-text="t"></option></template>
+                                </select>
+                            </div>
+                            <div><label class="label-text">รุ่น (TWINE SERIES)</label>
+                                <select class="input-box" x-model="tagForm.twineSeries">
+                                    <option>All (ทั้งหมด)</option>
+                                    <template x-for="t in twineSeries" :key="t"><option x-text="t"></option></template>
+                                </select>
+                            </div>
+                            <div><label class="label-text">เบอร์ใยติดป้าย (Twine on label)</label><input class="input-box" x-model="tagForm.twineOnLabel"></div>
+                            <div><label class="label-text">รหัสสี (Ear Color Code)</label>
+                                <select class="input-box" x-model="tagForm.earColorCode"><option>YLM90</option><option>RED50</option><option>BLU30</option></select>
+                            </div>
+                        </div>
+                        <div class="border-t pt-4">
+                            <label class="label-text">☷ ช่วงรายละเอียดสเปกสินค้า</label>
+                            <div class="spec-row text-xs"><span>1. เบอร์ใยผลิต</span><input class="input-box" value="0.10"><span>-</span><input class="input-box" value="0.90"><span>mm</span></div>
+                            <div class="spec-row text-xs"><span>2. ขนาดตา (cm)</span><input class="input-box" value="1.50"><span>-</span><input class="input-box" value="5.00"><span>cm</span></div>
+                            <div class="spec-row text-xs"><span>3. จำนวนตา (md)</span><input class="input-box" value="50.00"><span>-</span><input class="input-box" value="200.00"><span>md</span></div>
+                            <div class="spec-row text-xs"><span>4. ความยาว (m)</span><input class="input-box" value="100.00"><span>-</span><input class="input-box" value="600.00"><span>m</span></div>
+                            <div class="spec-row text-xs"><span>5. นน.ต่อคืน (kg)</span><input class="input-box" value="1.20"><span>-</span><input class="input-box" value="15.00"><span>kg</span></div>
+                        </div>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="border rounded-lg p-4">
+                            <label class="label-text mb-2">ข้อมูลป้ายหลัก</label>
+                            <div class="space-y-3">
+                                <div>
+                                    <label class="label-text">รหัส BRAND สินค้า * <span class="local-note">มาจากข้อมูล 1.1 Brand สินค้า</span></label>
+                                    <select class="input-box" x-model="tagForm.brand" @change="onTagBrandChange()">
+                                        <template x-for="b in brands" :key="b.id"><option :value="brandLabel(b)" x-text="brandLabel(b)"></option></template>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="label-text">รหัสป้าย * <span class="api-note">รหัส/ข้อมูลจาก API จัดซื้อ</span></label>
+                                    <select class="input-box" x-model="tagForm.tagName">
+                                        <template x-for="t in tagOptionsFor(tagForm.brand)" :key="t"><option :value="t" x-text="t"></option></template>
+                                    </select>
+                                </div>
+                                <div><label class="label-text">รหัสป้ายเก่า (ถ้ามี)</label><input class="input-box" x-model="tagForm.oldTagCode" placeholder="เช่น 72"></div>
+                            </div>
+                        </div>
+                        <div class="border rounded-lg p-4">
+                            <label class="label-text mb-2">เงื่อนไขเพิ่มเติม</label>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div><label class="label-text">เงื่อน (KNOT)</label><select class="input-box" x-model="tagForm.knot"><option>DK (Double Knot)</option><option>SK (Single Knot)</option></select></div>
+                                <div><label class="label-text">ประเภทการอบ (Type)</label><select class="input-box" x-model="tagForm.ovenType"><option>อบ YOKO</option><option>อบ NATIONAL</option><option>ไม่อบ</option></select></div>
+                                <div><label class="label-text">วันที่ประกาศใช้</label><input type="date" class="input-box" x-model="tagForm.effectiveDate"></div>
+                                <div><label class="label-text">วันที่หมดอายุ</label><input type="date" class="input-box" x-model="tagForm.expireDate"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="p-4 border-t flex justify-end gap-2 bg-gray-50">
+                    <button @click="goTagList()" class="px-6 py-2 border rounded text-sm">ยกเลิก</button>
+                    <button @click="saveTagStandard()" class="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded text-sm font-bold">✔ บันทึกเงื่อนไขมาตรฐาน</button>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- ============ 1.4 LIST: รูปแบบการพิมพ์ข้อมูลในป้าย ============ -->
+    <template x-if="view === 'printFormatList'">
+        <div>
+            <div class="page-wrap">
+                <div class="page-title">
+                    <span>การกำหนดรูปแบบการพิมพ์ข้อมูลในป้ายสินค้า</span>
+                    <button @click="openNewPrintFormatForm()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-4 py-2 rounded-lg">+ เพิ่มรูปแบบใหม่</button>
+                </div>
+            </div>
+            <div class="page-wrap">
+                <div class="bg-white rounded-lg shadow-sm p-4">
+                    <div class="flex justify-between items-center mb-3">
+                        <input type="text" x-model="printFormatSearch" placeholder="ค้นหารหัส / รายละเอียด..." class="input-box max-w-xs">
+                        <span class="text-xs text-gray-500" x-text="`ทั้งหมด ${filteredPrintFormats.length} รายการ`"></span>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="data-table">
+                            <thead><tr><th>รหัส</th><th>รายละเอียด (TH)</th><th>รายละเอียด (EN)</th><th>ประกาศใช้ - หมดอายุ</th><th>สถานะ</th><th class="text-right">การจัดการ</th></tr></thead>
+                            <tbody>
+                                <template x-for="rec in filteredPrintFormats" :key="rec.id">
+                                    <tr>
+                                        <td class="font-semibold" x-text="rec.code"></td>
+                                        <td x-text="rec.nameTh"></td>
+                                        <td x-text="rec.nameEn"></td>
+                                        <td class="text-xs" x-text="rec.effectiveDate + ' → ' + (rec.expireDate || 'ไม่มีกำหนด')"></td>
+                                        <td><span :class="isActive(rec) ? 'badge-active' : 'badge-expired'" x-text="isActive(rec) ? 'ใช้งานอยู่' : 'หมดอายุ'"></span></td>
+                                        <td class="text-right whitespace-nowrap">
+                                            <button @click="viewDetail(rec, 'printFormat')" class="icon-btn bg-slate-100 text-slate-700 hover:bg-slate-200">ดูรายละเอียด</button>
+                                            <button @click="deleteRecord('printFormats', rec)" class="icon-btn bg-red-50 text-red-600 hover:bg-red-100">ลบ</button>
+                                        </td>
+                                    </tr>
+                                </template>
+                                <tr x-show="filteredPrintFormats.length === 0"><td colspan="6" class="text-center text-gray-400 py-8 text-sm">ไม่พบข้อมูลที่ค้นหา</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- ============ 1.4 FORM ============ -->
+    <template x-if="view === 'printFormatForm'">
+        <div class="page-wrap">
+            <div class="modal-container">
+                <div class="header-bg"><span>เพิ่มข้อมูล รูปแบบการพิมพ์ข้อมูลในป้ายสินค้า</span><button @click="goPrintFormatList()" class="text-white/90 hover:text-white">✕</button></div>
+                <div class="p-6 grid grid-cols-2 gap-8">
+                    <div class="space-y-4">
+                        <div>
+                            <label class="label-text">รหัสรูปแบบการพิมพ์ป้ายสินค้า</label>
+                            <div class="flex gap-2">
+                                <input class="input-box" x-model="printFormatForm.code" readonly>
+                                <button type="button" @click="printFormatForm.code = nextPrintFormatCode()" class="bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold px-3 rounded whitespace-nowrap">⚡ Auto Running 0-9, A-Z</button>
+                            </div>
+                        </div>
+                        <div><label class="label-text">รายละเอียดรูปแบบการพิมพ์ป้ายสินค้า (TH) *</label><input class="input-box" x-model="printFormatForm.nameTh" placeholder="ประเภทที่ 1 ขายต่าง ทุกโซน"></div>
+                        <div><label class="label-text">รายละเอียดรูปแบบการพิมพ์ป้ายสินค้า (EN) (กรอกหรือไม่กรอกก็ได้)</label><input class="input-box" x-model="printFormatForm.nameEn" placeholder="International Sales - All Regions"></div>
+                        <div><label class="label-text">หมายเหตุ (Remark)</label><input class="input-box" x-model="printFormatForm.remark" placeholder="สินค้ากลุ่ม ต่างประเทศ"></div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div><label class="label-text">วันที่ประกาศใช้</label><input type="date" class="input-box" x-model="printFormatForm.effectiveDate"></div>
+                            <div><label class="label-text">วันที่หมดอายุ</label><input type="date" class="input-box" x-model="printFormatForm.expireDate"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="label-text mb-2 flex items-center justify-between">
+                            <span>☷ ลำดับรายละเอียดการพิมพ์</span>
+                            <button type="button" @click="stub('เลือกรูปแบบอ้างอิงเพื่อคัดลอกลำดับ (mock)')" class="text-[11px] bg-slate-100 hover:bg-slate-200 px-2 py-1 rounded font-semibold">อ้างอิงประเภทที่ 1</button>
+                        </label>
+                        <table class="data-table">
+                            <thead><tr><th>หัวข้อรายละเอียด (TH)</th><th>หัวข้อรายละเอียด (EN)</th><th>แสดงผล?</th><th>ลำดับการพิมพ์</th></tr></thead>
+                            <tbody>
+                                <template x-for="f in printFormatForm.fields" :key="f.key">
+                                    <tr>
+                                        <td x-text="f.th"></td>
+                                        <td class="text-gray-500" x-text="f.en"></td>
+                                        <td><input type="checkbox" x-model="f.show"></td>
+                                        <td><input type="number" min="1" class="input-box w-16" x-model.number="f.order" :disabled="!f.show"></td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="p-4 border-t flex justify-end gap-2 bg-gray-50">
+                    <button @click="goPrintFormatList()" class="px-6 py-2 border rounded text-sm">ยกเลิก</button>
+                    <button @click="savePrintFormat()" class="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded text-sm font-bold">✔ บันทึกข้อมูล</button>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- ============ 9 LIST: รูปแบบการพิมพ์ป้ายหัวห่อ ============ -->
+    <template x-if="view === 'headerLabelList'">
+        <div>
+            <div class="page-wrap">
+                <div class="page-title">
+                    <span>รูปแบบการพิมพ์ป้ายหัวห่อ</span>
+                    <button @click="openNewHeaderLabelForm()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-4 py-2 rounded-lg">+ เพิ่มรูปแบบใหม่</button>
+                </div>
+            </div>
+            <div class="page-wrap">
+                <div class="bg-white rounded-lg shadow-sm p-4">
+                    <div class="flex justify-between items-center mb-3">
+                        <input type="text" x-model="headerLabelSearch" placeholder="ค้นหารหัส / รายละเอียด..." class="input-box max-w-xs">
+                        <span class="text-xs text-gray-500" x-text="`ทั้งหมด ${filteredHeaderLabels.length} รายการ`"></span>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="data-table">
+                            <thead><tr><th>รหัสรูปแบบ</th><th>รายละเอียด</th><th>จำนวน Caption</th><th>ประกาศใช้ - หมดอายุ</th><th>สถานะ</th><th class="text-right">การจัดการ</th></tr></thead>
+                            <tbody>
+                                <template x-for="rec in filteredHeaderLabels" :key="rec.id">
+                                    <tr>
+                                        <td class="font-semibold" x-text="rec.code"></td>
+                                        <td x-text="rec.desc"></td>
+                                        <td x-text="rec.captions.length"></td>
+                                        <td class="text-xs" x-text="rec.effectiveDate + ' → ' + (rec.expireDate || 'ไม่มีกำหนด')"></td>
+                                        <td><span :class="isActive(rec) ? 'badge-active' : 'badge-expired'" x-text="isActive(rec) ? 'ใช้งานอยู่' : 'หมดอายุ'"></span></td>
+                                        <td class="text-right whitespace-nowrap">
+                                            <button @click="viewDetail(rec, 'headerLabel')" class="icon-btn bg-slate-100 text-slate-700 hover:bg-slate-200">ดูรายละเอียด</button>
+                                            <button @click="deleteRecord('headerLabels', rec)" class="icon-btn bg-red-50 text-red-600 hover:bg-red-100">ลบ</button>
+                                        </td>
+                                    </tr>
+                                </template>
+                                <tr x-show="filteredHeaderLabels.length === 0"><td colspan="6" class="text-center text-gray-400 py-8 text-sm">ไม่พบข้อมูลที่ค้นหา</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- ============ 9 FORM: ตัวออกแบบป้ายหัวห่อ ============ -->
+    <template x-if="view === 'headerLabelForm'">
+        <div class="page-wrap">
+            <div class="modal-container">
+                <div class="header-bg"><span>เพิ่มข้อมูล รูปแบบการพิมพ์ป้ายหัวห่อ</span><button @click="goHeaderLabelList()" class="text-white/90 hover:text-white">✕</button></div>
+                <div class="p-6 grid grid-cols-2 gap-8">
+                    <div class="space-y-4">
+                        <div><label class="label-text">รหัสรูปแบบการพิมพ์ *</label><input class="input-box" x-model="headerForm.code" placeholder="เช่น LBL-BIRDNET-01"></div>
+                        <div><label class="label-text">รายละเอียด *</label><input class="input-box" x-model="headerForm.desc" placeholder="เช่น ป้ายหัวห่อ BIRD NET มาตรฐาน"></div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div><label class="label-text">วันที่ประกาศใช้</label><input type="date" class="input-box" x-model="headerForm.effectiveDate"></div>
+                            <div><label class="label-text">วันที่หมดอายุ</label><input type="date" class="input-box" x-model="headerForm.expireDate"></div>
+                        </div>
+                        <div class="flex gap-6 text-xs pt-1">
+                            <label class="flex items-center gap-2"><input type="checkbox" x-model="headerForm.hasImageInList"> มีรูปในป้ายรายการ</label>
+                            <label class="flex items-center gap-2"><input type="checkbox" x-model="headerForm.printFromMaster"> พิมพ์จากข้อมูล master data</label>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4 pt-2">
+                            <div><label class="label-text">ตัวอย่างการติดป้ายหัวห่อ</label><input type="file" class="input-box text-xs"></div>
+                            <div><label class="label-text">รูปป้ายติดของจริง</label><input type="file" class="input-box text-xs"></div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-3">
+                        <label class="label-text">กลุ่มข้อมูล — เลือกกลุ่มเพื่อดึงฟิลด์มาใส่ในตาราง</label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <template x-for="g in fieldGroups" :key="g.id">
+                                <button type="button" class="group-btn" :class="selectedGroupId === g.id ? 'active' : ''" @click="selectedGroupId = g.id" x-text="g.label"></button>
+                            </template>
+                        </div>
+                        <div class="flex flex-wrap gap-2 pt-1">
+                            <template x-for="f in currentGroupFields" :key="f">
+                                <button type="button" class="field-chip" @click="addCaptionField(f)" x-text="f"></button>
+                            </template>
+                        </div>
+
+                        <label class="label-text pt-2">ตัวอย่างป้ายหัวห่อ</label>
+                        <div class="border rounded-lg p-4 bg-gray-50">
+                            <div class="font-bold text-sm mb-2">ORDER</div>
+                            <template x-for="(c, i) in headerForm.captions.filter(c => c.print)" :key="i">
+                                <div class="text-xs text-gray-700" x-text="c.caption"></div>
+                            </template>
+                            <p class="text-[11px] text-gray-400 mt-2" x-show="headerForm.captions.filter(c => c.print).length === 0">ยังไม่มี Caption ที่เลือกพิมพ์</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="px-6 pb-4">
+                    <div class="flex justify-between items-center mb-2">
+                        <label class="label-text">รายการ Caption ที่จะพิมพ์บนป้าย</label>
+                        <button type="button" @click="addEmptyCaptionRow()" class="bg-slate-100 hover:bg-slate-200 text-xs font-semibold px-3 py-1.5 rounded">+ เพิ่มรายการเปล่า</button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="data-table">
+                            <thead><tr><th>#</th><th>ข้อมูล Caption</th><th>Fix ค่า</th><th>ฟิลด์ที่ดึงมาพิมพ์</th><th>หน่วย</th><th>ฟอนต์/ขนาด</th><th>พิมพ์ Caption</th><th></th></tr></thead>
+                            <tbody>
+                                <template x-for="(c, idx) in headerForm.captions" :key="idx">
+                                    <tr>
+                                        <td x-text="idx + 1"></td>
+                                        <td><input class="input-box" x-model="c.caption"></td>
+                                        <td class="text-center"><input type="checkbox" x-model="c.fix"></td>
+                                        <td><input class="input-box" x-model="c.field"></td>
+                                        <td><input class="input-box" x-model="c.unit"></td>
+                                        <td><input class="input-box" x-model="c.font"></td>
+                                        <td class="text-center"><input type="checkbox" x-model="c.print"></td>
+                                        <td><button type="button" @click="headerForm.captions.splice(idx,1)" class="text-red-500 hover:text-red-700 text-xs font-bold">ลบ</button></td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="text-[11px] text-gray-400 mt-2">* ติ๊ก "Fix ค่า" เมื่อต้องการให้ข้อความคงที่แทนการดึงจากฟิลด์ข้อมูล · ฟอนต์รูปแบบ ชื่อฟอนต์-น้ำหนัก-ขนาด เช่น Arial-Bold-22pt</p>
+                </div>
+
+                <div class="p-4 border-t flex justify-end gap-2 bg-gray-50">
+                    <button @click="goHeaderLabelList()" class="px-6 py-2 border rounded text-sm">ยกเลิก</button>
+                    <button @click="saveHeaderLabel()" class="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded text-sm font-bold">✔ บันทึกข้อมูล</button>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- ============ 10.1 LIST: มตฐ.เงื่อนไขการนำบรรจุภัณฑ์ไปใช้ ============ -->
+    <template x-if="view === 'usageList'">
+        <div>
+            <div class="page-wrap">
+                <div class="page-title">
+                    <span>มาตรฐานเงื่อนไขการนำบรรจุภัณฑ์ไปใช้</span>
+                    <button @click="openNewUsageForm()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-4 py-2 rounded-lg">+ เพิ่มมาตรฐานใหม่</button>
+                </div>
+            </div>
+            <div class="page-wrap">
+                <div class="flow-banner">▸ ผูกบรรจุภัณฑ์จริง (ถุง/สติกเกอร์/กระสอบ/สายรัด) เข้ากับ Brand+ป้ายที่ตั้งเงื่อนไขไว้แล้วในเมนู <b>1.3</b> แบบ General (ใช้ได้ทุกกรณี) หรือ Specific (ระบุเงื่อนไขย่อย)</div>
+                <div class="bg-white rounded-lg shadow-sm p-4">
+                    <div class="flex justify-between items-center mb-3">
+                        <input type="text" x-model="usageSearch" placeholder="ค้นหา Brand / ลูกค้า / ป้ายสินค้า..." class="input-box max-w-xs">
+                        <span class="text-xs text-gray-500" x-text="`ทั้งหมด ${filteredUsageRecords.length} รายการ`"></span>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="data-table">
+                            <thead>
+                                <tr><th>Brand / ป้ายสินค้า</th><th>โหมด</th><th>รหัสลูกค้า</th><th>ประเภทสินค้า</th><th>ประกาศใช้ - หมดอายุ</th><th>สถานะ</th><th class="text-right">การจัดการ</th></tr>
+                            </thead>
+                            <tbody>
+                                <template x-for="rec in filteredUsageRecords" :key="rec.id">
+                                    <tr>
+                                        <td><div class="font-semibold text-gray-800" x-text="rec.brand"></div><div class="text-gray-500 text-xs" x-text="rec.tag"></div></td>
+                                        <td><span class="tag" x-text="rec.mode"></span></td>
+                                        <td x-text="rec.customerLabel"></td>
+                                        <td x-text="rec.productLabel"></td>
+                                        <td class="text-xs" x-text="rec.effectiveDate + ' → ' + (rec.expireDate || 'ไม่มีกำหนด')"></td>
+                                        <td><span :class="isActive(rec) ? 'badge-active' : 'badge-expired'" x-text="isActive(rec) ? 'ใช้งานอยู่' : 'หมดอายุ'"></span></td>
+                                        <td class="text-right whitespace-nowrap">
+                                            <button @click="viewDetail(rec, 'usage')" class="icon-btn bg-slate-100 text-slate-700 hover:bg-slate-200">ดูรายละเอียด</button>
+                                            <button @click="deleteRecord('usageRecords', rec)" class="icon-btn bg-red-50 text-red-600 hover:bg-red-100">ลบ</button>
+                                        </td>
+                                    </tr>
+                                </template>
+                                <tr x-show="filteredUsageRecords.length === 0"><td colspan="7" class="text-center text-gray-400 py-8 text-sm">ไม่พบข้อมูลที่ค้นหา</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- ============ 10.1 FORM ============ -->
+    <template x-if="view === 'usageForm'">
+        <div class="page-wrap">
+            <div class="modal-container">
+                <div class="header-bg">
+                    <span>เพิ่มมาตรฐานเงื่อนไขการนำบรรจุภัณฑ์ไปใช้ (General & Specific)</span>
+                    <button @click="goUsageList()" class="text-white/90 hover:text-white">✕</button>
+                </div>
+                <div class="p-6 grid grid-cols-2 gap-8">
+                    <div class="space-y-4">
+                        <div>
+                            <label class="label-text">รูปแบบข้อกำหนดการนำไปใช้ (Mapping Mode) *</label>
+                            <div class="flex border rounded-lg overflow-hidden border-gray-300">
+                                <button type="button" @click="usageForm.mode = 'General'" :class="usageForm.mode === 'General' ? 'bg-black text-white' : 'bg-gray-100'" class="w-1/2 py-2 text-sm font-bold">General</button>
+                                <button type="button" @click="usageForm.mode = 'Specific'" :class="usageForm.mode === 'Specific' ? 'bg-black text-white' : 'bg-gray-100'" class="w-1/2 py-2 text-sm font-bold">Specific</button>
+                            </div>
+                        </div>
+                        <div class="border-t pt-4">
+                            <label class="label-text mb-3">ข้อมูลป้ายสินค้าหลัก (Master Tag Info) <span class="local-note">Brand จาก 1.1</span> <span class="api-note">ป้ายจาก API จัดซื้อ</span></label>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div><label class="label-text">รหัส Brand สินค้า</label>
+                                    <select class="input-box" x-model="usageForm.brand" @change="onUsageBrandChange()">
+                                        <template x-for="b in brands" :key="b.id"><option :value="brandLabel(b)" x-text="brandLabel(b)"></option></template>
+                                    </select>
+                                </div>
+                                <div><label class="label-text">รหัสป้ายสินค้า</label>
+                                    <select class="input-box" x-model="usageForm.tag">
+                                        <template x-for="t in tagOptionsFor(usageForm.brand)" :key="t"><option :value="t" x-text="t"></option></template>
+                                    </select>
+                                </div>
+                            </div>
+                            <p class="text-[11px] text-gray-400 mt-2" x-show="!hasTagStandard(usageForm.brand, usageForm.tag)">⚠ ป้ายนี้ยังไม่มีมาตรฐานเงื่อนไขการใช้ป้ายที่เมนู 1.3 — แนะนำให้ไปตั้งค่าก่อน</p>
+                        </div>
+                        <div x-show="usageForm.mode === 'Specific'" class="border-t pt-4">
+                            <div class="filter-header"><span>▼ ระบุรายละเอียดคัดกรองย่อย (Specific Filters)</span></div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="label-text">รหัสลูกค้า</label>
+                                    <div class="input-box min-h-[44px] flex flex-wrap gap-2 items-center">
+                                        <template x-for="tagv in selectedCustomers" :key="tagv"><span class="tag"><span x-text="tagv"></span><button type="button" class="text-blue-700 font-bold" @click="toggles('selectedCustomers', tagv)">×</button></span></template>
+                                        <template x-if="selectedCustomers.length === 0"><span class="text-xs text-gray-500">All (ทั้งหมด)</span></template>
+                                        <select class="bg-transparent outline-none text-sm flex-1 min-w-[140px]" @change="toggles('selectedCustomers', $event.target.value); $event.target.value='';">
+                                            <option value=""></option>
+                                            <template x-for="item in customerCodes" :key="item"><option :value="item" x-text="item"></option></template>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div><label class="label-text">ประเภทการอบ (Type)</label><select class="input-box"><option>อบ YOKO</option></select></div>
+                                <div>
+                                    <label class="label-text">ประเภทสินค้า</label>
+                                    <div class="input-box min-h-[44px] flex flex-wrap gap-2 items-center">
+                                        <template x-for="tagv in selectedProducts" :key="tagv"><span class="tag"><span x-text="tagv"></span><button type="button" class="text-blue-700 font-bold" @click="toggles('selectedProducts', tagv)">×</button></span></template>
+                                        <template x-if="selectedProducts.length === 0"><span class="text-xs text-gray-500">All (ทั้งหมด)</span></template>
+                                        <select class="bg-transparent outline-none text-sm flex-1 min-w-[140px]" @change="toggles('selectedProducts', $event.target.value); $event.target.value='';">
+                                            <option value=""></option>
+                                            <template x-for="type in productTypes" :key="type"><option :value="type" x-text="type"></option></template>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div><label class="label-text">เบอร์ใยติดป้าย</label><input class="input-box" value="0.30 mm"></div>
+                                <div><label class="label-text">เงื่อน (DK/SK)</label><select class="input-box"><option>DK (Double Knot)</option></select></div>
+                                <div><label class="label-text">Shipping Mark</label><input class="input-box" value="MY0401 SION LEE "></div>
+                                <div><label class="label-text">ระดับคุณภาพ</label><select class="input-box"><option>P (Premium)</option></select></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="border-l pl-8">
+                        <div class="font-bold text-green-700 text-sm mb-4">บรรจุภัณฑ์สินค้าหลัก (5 Core Materials) <span class="api-note">⇄ API จัดซื้อ</span></div>
+                        <div class="space-y-3">
+                            <div class="flex items-center gap-2"><span class="w-1/3 text-xs">ถุงบรรจุสินค้า</span>
+                                <select class="input-box flex-1" x-model="usageForm.bag"><option>ZF : ถุงใสพิมพ์โลโก้</option><option>ZG : ถุงทึบพิมพ์โลโก้</option></select>
+                                <button type="button" @click="openImage('ถุงบรรจุสินค้า')" class="bg-blue-900 text-white px-2 py-1 text-[10px] rounded">รูป</button>
+                            </div>
+                            <div class="flex items-center gap-2"><span class="w-1/3 text-xs">Tape/Sticker</span>
+                                <select class="input-box flex-1" x-model="usageForm.tape"><option>P5 : สติกเกอร์ เรือใบทองพื้นแดง</option><option>P6 : สติกเกอร์ ดาวทะเลน้ำเงิน</option></select>
+                                <button type="button" @click="openImage('Tape/Sticker')" class="bg-blue-900 text-white px-2 py-1 text-[10px] rounded">รูป</button>
+                            </div>
+                            <div class="flex items-center gap-2"><span class="w-1/3 text-xs">กระสอบผ้าใบ</span>
+                                <select class="input-box flex-1" x-model="usageForm.sack"><option>10 : กระสอบสีเหลืองไม่มีแถบ</option><option>11 : กระสอบสีขาวมีแถบฟ้า</option></select>
+                                <button type="button" @click="openImage('กระสอบผ้าใบ')" class="bg-blue-900 text-white px-2 py-1 text-[10px] rounded">รูป</button>
+                            </div>
+                            <div class="flex items-center gap-2"><span class="w-1/3 text-xs">สายรัดกระสอบ</span>
+                                <select class="input-box flex-1" x-model="usageForm.strap"><option>01 : สีเหลือง LOGO เรือใบ</option><option>02 : สีแดง LOGO ดาวทะเล</option></select>
+                                <button type="button" @click="openImage('สายรัดกระสอบ')" class="bg-blue-900 text-white px-2 py-1 text-[10px] rounded">รูป</button>
+                            </div>
+                            <div class="flex items-start gap-2">
+                                <span class="w-1/3 text-xs mt-2">สติกเกอร์ติดกระสอบ</span>
+                                <div class="flex-1">
+                                    <div class="input-box min-h-[44px] flex flex-wrap gap-2 items-center">
+                                        <template x-for="tagv in selectedStickers" :key="tagv"><span class="tag"><span x-text="tagv"></span><button type="button" class="text-blue-700 font-bold" @click="toggles('selectedStickers', tagv)">×</button></span></template>
+                                        <template x-if="selectedStickers.length === 0"><span class="text-xs text-gray-500">All (ทั้งหมด)</span></template>
+                                        <select class="bg-transparent outline-none text-sm flex-1 min-w-[140px]" @change="toggles('selectedStickers', $event.target.value); $event.target.value='';">
+                                            <option value=""></option>
+                                            <template x-for="tagv in availableStickers" :key="tagv"><option :value="tagv" x-text="tagv"></option></template>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-6 p-3 bg-gray-900 text-white text-[11px] rounded flex justify-between items-center">
+                            <span x-text="'PREVIEW ACTIVE: ' + usageForm.tag"></span><span class="text-green-400 font-bold text-lg">✔</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4 mt-2">
+                            <div><label class="label-text">วันที่ประกาศใช้</label><input type="date" class="input-box" x-model="usageForm.effectiveDate"></div>
+                            <div><label class="label-text">วันที่หมดอายุ</label><input type="date" class="input-box" x-model="usageForm.expireDate"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="p-4 border-t flex justify-end gap-2 bg-gray-50">
+                    <button @click="goUsageList()" class="px-6 py-2 border rounded text-sm">ยกเลิก</button>
+                    <button @click="saveUsageRecord()" class="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded text-sm font-bold">✔ บันทึกข้อมูลเงื่อนไขบรรจุภัณฑ์</button>
+                </div>
+            </div>
+        </div>
+    </template>
+</main>
+
+<!-- ===== Modal: ดูรูปภาพ ===== -->
+<div x-show="showImageModal" x-cloak class="fixed inset-0 bg-black/60 flex items-center justify-center z-50" @click.self="showImageModal = false">
+    <div class="bg-white rounded-lg p-4 w-80" @click.stop>
+        <div class="flex justify-between items-center mb-3"><span class="font-bold text-sm" x-text="modalTitle"></span><button @click="showImageModal = false" class="text-gray-500 hover:text-gray-800">✕</button></div>
+        <svg viewBox="0 0 280 200" class="w-full rounded border border-gray-200 bg-gray-50">
+            <rect width="280" height="200" fill="#f1f5f9"/>
+            <text x="140" y="95" text-anchor="middle" font-size="12" fill="#94a3b8">ตัวอย่างรูปภาพ</text>
+            <text x="140" y="115" text-anchor="middle" font-size="11" fill="#64748b" x-text="modalTitle"></text>
+        </svg>
+        <p class="text-[11px] text-gray-400 mt-2">*ในระบบจริงจะแสดงรูปถ่ายจริงของอุปกรณ์บรรจุภัณฑ์ที่เลือก (ดึงจากระบบจัดซื้อ)</p>
     </div>
 </div>
 
+<!-- ===== Modal: ดูรายละเอียด ===== -->
+<div x-show="showDetailModal" x-cloak class="fixed inset-0 bg-black/60 flex items-center justify-center z-50" @click.self="showDetailModal = false">
+    <div class="bg-white rounded-lg w-[520px] max-w-[92vw] max-h-[85vh] overflow-y-auto" @click.stop x-show="detail">
+        <div class="header-bg rounded-t-lg sticky top-0">
+            <span x-text="detailTitle()"></span><button @click="showDetailModal = false" class="text-white/90 hover:text-white">✕</button>
+        </div>
+        <div class="p-5 text-sm space-y-2" x-show="detail">
+            <template x-if="detailType === 'tag'">
+                <div class="space-y-2">
+                    <div class="flex justify-between border-b pb-2"><span class="text-gray-500">Brand / ป้าย</span><span class="font-semibold" x-text="detail?.brand + ' / ' + detail?.tagName"></span></div>
+                    <div class="flex justify-between border-b pb-2"><span class="text-gray-500">ประเภทการขาย</span><span x-text="detail?.saleType"></span></div>
+                    <div class="flex justify-between border-b pb-2"><span class="text-gray-500">ประเทศ</span><span x-text="detail?.country"></span></div>
+                    <div class="flex justify-between border-b pb-2"><span class="text-gray-500">รหัสลูกค้า</span><span x-text="detail?.customer"></span></div>
+                    <div class="flex justify-between border-b pb-2"><span class="text-gray-500">ระดับคุณภาพ</span><span x-text="detail?.quality"></span></div>
+                    <div class="flex justify-between border-b pb-2"><span class="text-gray-500">ประเภทสินค้า</span><span x-text="detail?.productType"></span></div>
+                    <div class="flex justify-between border-b pb-2"><span class="text-gray-500">วันที่ประกาศใช้</span><span x-text="detail?.effectiveDate"></span></div>
+                    <div class="flex justify-between pb-2"><span class="text-gray-500">วันที่หมดอายุ</span><span x-text="detail?.expireDate || 'ไม่มีกำหนด'"></span></div>
+                </div>
+            </template>
+            <template x-if="detailType === 'usage'">
+                <div class="space-y-2">
+                    <div class="flex justify-between border-b pb-2"><span class="text-gray-500">Brand / ป้าย</span><span class="font-semibold" x-text="detail?.brand + ' / ' + detail?.tag"></span></div>
+                    <div class="flex justify-between border-b pb-2"><span class="text-gray-500">โหมด</span><span x-text="detail?.mode"></span></div>
+                    <div class="flex justify-between border-b pb-2"><span class="text-gray-500">รหัสลูกค้า</span><span x-text="detail?.customerLabel"></span></div>
+                    <div class="flex justify-between border-b pb-2"><span class="text-gray-500">ประเภทสินค้า</span><span x-text="detail?.productLabel"></span></div>
+                    <div class="flex justify-between border-b pb-2"><span class="text-gray-500">ถุงบรรจุสินค้า</span><span x-text="detail?.bag"></span></div>
+                    <div class="flex justify-between border-b pb-2"><span class="text-gray-500">กระสอบผ้าใบ</span><span x-text="detail?.sack"></span></div>
+                    <div class="flex justify-between border-b pb-2"><span class="text-gray-500">วันที่ประกาศใช้</span><span x-text="detail?.effectiveDate"></span></div>
+                    <div class="flex justify-between pb-2"><span class="text-gray-500">วันที่หมดอายุ</span><span x-text="detail?.expireDate || 'ไม่มีกำหนด'"></span></div>
+                </div>
+            </template>
+            <template x-if="detailType === 'brand'">
+                <div class="space-y-2">
+                    <div class="flex justify-between border-b pb-2"><span class="text-gray-500">รหัส BRAND</span><span class="font-semibold" x-text="detail?.code"></span></div>
+                    <div class="flex justify-between border-b pb-2"><span class="text-gray-500">ประเภท / Subbrand</span><span x-text="detail?.brandType + ' / ' + detail?.subBrandType"></span></div>
+                    <div class="flex justify-between border-b pb-2"><span class="text-gray-500">รายละเอียด (TH)</span><span x-text="detail?.nameTh"></span></div>
+                    <div class="flex justify-between border-b pb-2"><span class="text-gray-500">รายละเอียด (EN)</span><span x-text="detail?.nameEn"></span></div>
+                    <div class="flex justify-between border-b pb-2"><span class="text-gray-500">จำนวนป้ายที่ sync แล้ว</span><span x-text="(detail?.tags?.length || 0) + ' ป้าย'"></span></div>
+                    <div class="flex justify-between border-b pb-2"><span class="text-gray-500">วันที่ประกาศใช้</span><span x-text="detail?.effectiveDate"></span></div>
+                    <div class="flex justify-between pb-2"><span class="text-gray-500">วันที่หมดอายุ</span><span x-text="detail?.expireDate || 'ไม่มีกำหนด'"></span></div>
+                </div>
+            </template>
+            <template x-if="detailType === 'printFormat'">
+                <div class="space-y-2">
+                    <div class="flex justify-between border-b pb-2"><span class="text-gray-500">รหัส</span><span class="font-semibold" x-text="detail?.code"></span></div>
+                    <div class="flex justify-between border-b pb-2"><span class="text-gray-500">รายละเอียด (TH)</span><span x-text="detail?.nameTh"></span></div>
+                    <div class="flex justify-between border-b pb-2"><span class="text-gray-500">รายละเอียด (EN)</span><span x-text="detail?.nameEn || '-'"></span></div>
+                    <div class="pt-2">
+                        <div class="text-gray-500 mb-1">ฟิลด์ที่แสดงผล (เรียงตามลำดับ)</div>
+                        <template x-for="f in (detail?.fields || []).filter(f=>f.show).sort((a,b)=>a.order-b.order)" :key="f.key">
+                            <div class="flex justify-between text-xs border-b py-1"><span x-text="f.order + '. ' + f.th"></span><span class="text-gray-400" x-text="f.en"></span></div>
+                        </template>
+                    </div>
+                </div>
+            </template>
+            <template x-if="detailType === 'headerLabel'">
+                <div class="space-y-2">
+                    <div class="flex justify-between border-b pb-2"><span class="text-gray-500">รหัสรูปแบบ</span><span class="font-semibold" x-text="detail?.code"></span></div>
+                    <div class="flex justify-between border-b pb-2"><span class="text-gray-500">รายละเอียด</span><span x-text="detail?.desc"></span></div>
+                    <div class="pt-2">
+                        <div class="text-gray-500 mb-1">Caption ที่พิมพ์</div>
+                        <template x-for="c in (detail?.captions || [])" :key="c.caption + c.field">
+                            <div class="flex justify-between text-xs border-b py-1"><span x-text="c.caption + ' ' + c.field"></span><span class="text-gray-400" x-text="c.font"></span></div>
+                        </template>
+                    </div>
+                </div>
+            </template>
+        </div>
+        <div class="p-4 border-t flex justify-end bg-gray-50 rounded-b-lg"><button @click="showDetailModal = false" class="px-5 py-2 border rounded text-sm">ปิด</button></div>
+    </div>
+</div>
+
+<!-- ===== Toast ===== -->
+<div class="toast" x-show="toast" x-transition x-cloak><span class="text-green-400">✔</span><span x-text="toast"></span></div>
+
+<script>
+const PRINT_FIELD_DEFS = [
+    { key: 'twine',  th: 'เบอร์ใย',      en: 'TWINE' },
+    { key: 'mesh',   th: 'ขนาดตา',      en: 'MESH' },
+    { key: 'depth',  th: 'ความลึก',     en: 'DEPTH' },
+    { key: 'length', th: 'ความยาว',     en: 'LENGTH' },
+    { key: 'color',  th: 'โค้ด สี',      en: 'COLOR' },
+    { key: 'type',   th: 'การอบ',       en: 'TYPE' },
+    { key: 'weight', th: 'น้ำหนัก',      en: 'WEIGHT' },
+    { key: 'ref',    th: 'อ้างอิง',      en: 'REF NO.' },
+    { key: 'detail', th: 'อธิบาย,ลักษณะ', en: 'DETAIL' },
+    { key: 'model',  th: 'รุ่นด้าย',      en: 'MODEL' }
+];
+const PRINT_FIELD_DEFAULT_SHOW = { twine:true, mesh:true, depth:true, length:true, color:true, type:true, weight:false, ref:true, detail:false, model:false };
+const PRINT_FIELD_DEFAULT_ORDER = { twine:1, mesh:2, depth:3, length:4, color:5, type:6, ref:7 };
+
+const FIELD_GROUPS = [
+    { id: '01', label: '01 เลขที่ ORDER', fields: ['ORDER NO'] },
+    { id: '02', label: '02 รายละเอียดสินค้า', fields: ['NUMBER', 'SIZE', 'COLOR', 'NET WT', 'GRS WT', 'DIM'] },
+    { id: '03', label: '03 บาร์โค้ด', fields: ['BARCODE'] },
+    { id: '04', label: '04 รายละเอียดห่อ', fields: ['BUNDLE NO', 'BUNDLE QTY'] }
+];
+const FIELD_DEFAULTS = {
+    'ORDER NO':   { caption: 'ORDER:',   dataField: 'ORDER NO',       font: 'Arial-Bold-22pt' },
+    'NUMBER':     { caption: 'NUMBER:',  dataField: 'TWINESIZEHLB',   font: 'Arial-Regular-14p' },
+    'SIZE':       { caption: 'SIZE:',    dataField: 'LENGTHHHLB',     font: 'Arial-Regular-14p' },
+    'COLOR':      { caption: 'COLOR:',   dataField: 'COLORHLB',       font: 'Arial-Bold-26pt' },
+    'NET WT':     { caption: 'NET WT:',  dataField: 'NETWEIGHTHLB',   font: 'Arial-Regular-14p' },
+    'GRS WT':     { caption: 'GRS WT:',  dataField: 'GROSSWEIGHTHLB', font: 'Arial-Regular-14p' },
+    'DIM':        { caption: 'DIM:',     dataField: 'DIMENSIONHLB',   font: 'Arial-Regular-14p' },
+    'BARCODE':    { caption: 'BARCODE:', dataField: 'BARCODENO',      font: 'Arial-Regular-14p' },
+    'BUNDLE NO':  { caption: 'BUNDLE:',  dataField: 'BUNDLENO',       font: 'Arial-Regular-14p' },
+    'BUNDLE QTY': { caption: 'QTY:',     dataField: 'BUNDLEQTY',      font: 'Arial-Regular-14p' }
+};
+
+function makeTagForm() {
+    return {
+        saleType: 'ขายต่างประเทศ (Export Sales)', country: 'All (ทุกประเทศ)', customer: 'All (ทุกรหัสลูกค้า)',
+        quality: 'P (Premium)', productGroup: 'All (ทุกกลุ่มประเภทสินค้า)', productType: 'All (ทั้งหมด)',
+        trammelingType: 'All (ทั้งหมด)', twineSeries: 'All (ทั้งหมด)', twineOnLabel: '0.30 mm', earColorCode: 'YLM90',
+        brand: 'ZK : GOLDEN SHIP ON RED', tagName: '0ช : ป้ายเรือใบทองพื้นแดง', oldTagCode: '',
+        knot: 'DK (Double Knot)', ovenType: 'อบ YOKO', effectiveDate: '2026-09-18', expireDate: ''
+    };
+}
+function makeUsageForm() {
+    return {
+        mode: 'Specific', brand: 'ZK : GOLDEN SHIP ON RED', tag: '0ช : ป้ายเรือใบทองพื้นแดง',
+        bag: 'ZF : ถุงใสพิมพ์โลโก้', tape: 'P5 : สติกเกอร์ เรือใบทองพื้นแดง', sack: '10 : กระสอบสีเหลืองไม่มีแถบ',
+        strap: '01 : สีเหลือง LOGO เรือใบ', effectiveDate: '2026-09-18', expireDate: ''
+    };
+}
+function makeBrandForm() {
+    return { brandType: 'KKF', subBrandType: 'Primary Brand', code: '', nameTh: '', nameEn: '', effectiveDate: '2026-09-18', expireDate: '' };
+}
+function makePrintFormatForm() {
+    return {
+        code: '', nameTh: '', nameEn: '', remark: '', effectiveDate: '2026-09-18', expireDate: '',
+        fields: PRINT_FIELD_DEFS.map(f => ({ ...f, show: !!PRINT_FIELD_DEFAULT_SHOW[f.key], order: PRINT_FIELD_DEFAULT_ORDER[f.key] || null }))
+    };
+}
+function makeHeaderForm() {
+    return {
+        code: '', desc: '', effectiveDate: '2026-09-18', expireDate: '', hasImageInList: false, printFromMaster: false,
+        captions: [
+            { caption: 'ORDER:', fix: false, field: 'ORDER NO', unit: '', font: 'Arial-Bold-22pt', print: true },
+            { caption: 'NUMBER:', fix: false, field: 'TWINESIZEHLB', unit: '', font: 'Arial-Regular-14p', print: true },
+            { caption: 'SIZE:', fix: false, field: 'LENGTHHHLB', unit: '', font: 'Arial-Regular-14p', print: true },
+            { caption: 'COLOR:', fix: false, field: 'COLORHLB', unit: '', font: 'Arial-Bold-26pt', print: true }
+        ]
+    };
+}
+
+function app() {
+    return {
+        view: 'usageList',
+        toast: null,
+        showImageModal: false,
+        showDetailModal: false,
+        modalTitle: '',
+        detail: null,
+        detailType: 'usage',
+
+        sidebarOpen: { packaging2: true, packaging: true, packagingUsage: true },
+
+        // ===== Master data =====
+        brands: [
+            { id: 1, brandType: 'KKF', subBrandType: 'Primary Brand', code: 'ZK', nameTh: 'เรือใบทอง พื้นแดง', nameEn: 'GOLDEN SHIP ON RED', effectiveDate: '2025-01-01', expireDate: '', tags: ['0ช : ป้ายเรือใบทองพื้นแดง', '0ด : ป้ายเรือใบทองพื้นน้ำเงิน'] },
+            { id: 2, brandType: 'KKF', subBrandType: 'Secondary Brand', code: 'MY', nameTh: 'ดาวทะเลเมียนมา', nameEn: 'MYANMAR OCEAN STAR', effectiveDate: '2025-01-01', expireDate: '', tags: ['0ด : ป้ายดาวทะเลพื้นน้ำเงิน'] },
+            { id: 3, brandType: 'Customer', subBrandType: 'CO-Brand', code: 'C1', nameTh: 'คลื่นฟ้าเวียดนาม', nameEn: 'VIETNAM BLUE WAVE', effectiveDate: '2025-01-01', expireDate: '', tags: ['0ค : ป้ายคลื่นฟ้าพื้นขาว'] }
+        ],
+        customerCodes: ['All (ทั้งหมด)', 'C001', 'C002', 'C003'],
+        productTypes: ['M : MONO NET', 'N : MULTI FILAMENT NET', 'X : MONO LINE', 'Y : NYLON TWINE'],
+        twineSeries: ['500 g / spool', '1 kg / spool', '2 kg / spool'],
+        trammelingTypes: ['DT', 'ST', 'OT'],
+        availableStickers: ['(S1-สติ๊กเกอร์ระวังเกี่ยวขาด)', '(S2-ลูกศรสีแดง)', '(S3-สติ๊กเกอร์ติดกระสอบ Lobter)'],
+        fieldGroups: FIELD_GROUPS,
+        selectedGroupId: '02',
+
+        selectedCustomers: [], selectedProducts: [], selectedTwineSeries: [], selectedTrammelingTypes: [], selectedStickers: [],
+
+        brandSearch: '', tagSearch: '', usageSearch: '', printFormatSearch: '', headerLabelSearch: '',
+        brandForm: makeBrandForm(),
+        tagForm: makeTagForm(),
+        usageForm: makeUsageForm(),
+        printFormatForm: makePrintFormatForm(),
+        headerForm: makeHeaderForm(),
+
+        tagStandards: [
+            { id: 1, brand: 'ZK : GOLDEN SHIP ON RED', tagName: '0ช : ป้ายเรือใบทองพื้นแดง', saleType: 'ขายต่างประเทศ (Export Sales)', country: 'All (ทุกประเทศ)', customer: 'All (ทุกรหัสลูกค้า)', quality: 'P (Premium)', productType: 'M : MONO NET', effectiveDate: '2026-06-24', expireDate: '2030-01-01' },
+            { id: 2, brand: 'MY : MYANMAR OCEAN STAR', tagName: '0ด : ป้ายดาวทะเลพื้นน้ำเงิน', saleType: 'ขายในประเทศ (Domestic Sales)', country: 'Thailand', customer: 'C002', quality: 'S (Standard)', productType: 'N : MULTI FILAMENT NET', effectiveDate: '2025-01-01', expireDate: '2025-12-31' }
+        ],
+        usageRecords: [
+            { id: 1, brand: 'ZK : GOLDEN SHIP ON RED', tag: '0ช : ป้ายเรือใบทองพื้นแดง', mode: 'Specific', customerLabel: 'All (ทั้งหมด)', productLabel: 'M : MONO NET', bag: 'ZF : ถุงใสพิมพ์โลโก้', sack: '10 : กระสอบสีเหลืองไม่มีแถบ', effectiveDate: '2026-06-24', expireDate: '2030-01-01' },
+            { id: 2, brand: 'MY : MYANMAR OCEAN STAR', tag: '0ด : ป้ายดาวทะเลพื้นน้ำเงิน', mode: 'General', customerLabel: 'C002', productLabel: 'N : MULTI FILAMENT NET', bag: 'ZG : ถุงทึบพิมพ์โลโก้', sack: '11 : กระสอบสีขาวมีแถบฟ้า', effectiveDate: '2025-01-01', expireDate: '2025-12-31' },
+            { id: 3, brand: 'VN : VIETNAM BLUE WAVE', tag: '0ค : ป้ายคลื่นฟ้าพื้นขาว', mode: 'Specific', customerLabel: 'C001, C003', productLabel: 'X : MONO LINE', bag: 'ZF : ถุงใสพิมพ์โลโก้', sack: '10 : กระสอบสีเหลืองไม่มีแถบ', effectiveDate: '2026-01-01', expireDate: '' }
+        ],
+        printFormats: [
+            { id: 1, code: '01', nameTh: 'ประเภทที่ 1 ขายต่าง ทุกโซน', nameEn: 'International Sales - All Regions', remark: 'สินค้ากลุ่ม ต่างประเทศ', effectiveDate: '2026-06-19', expireDate: '2030-01-01', fields: makePrintFormatForm().fields }
+        ],
+        headerLabels: [
+            { id: 1, code: 'LBL-BIRDNET-01', desc: 'ป้ายหัวห่อ BIRD NET มาตรฐาน', effectiveDate: '2026-09-18', expireDate: '', captions: makeHeaderForm().captions }
+        ],
+
+        get filteredBrands() {
+            const q = this.brandSearch.trim().toLowerCase();
+            if (!q) return this.brands;
+            return this.brands.filter(r => (r.code + r.nameTh + r.nameEn).toLowerCase().includes(q));
+        },
+        get filteredTagStandards() {
+            const q = this.tagSearch.trim().toLowerCase();
+            if (!q) return this.tagStandards;
+            return this.tagStandards.filter(r => (r.brand + r.tagName + r.customer).toLowerCase().includes(q));
+        },
+        get filteredUsageRecords() {
+            const q = this.usageSearch.trim().toLowerCase();
+            if (!q) return this.usageRecords;
+            return this.usageRecords.filter(r => (r.brand + r.tag + r.customerLabel + r.productLabel).toLowerCase().includes(q));
+        },
+        get filteredPrintFormats() {
+            const q = this.printFormatSearch.trim().toLowerCase();
+            if (!q) return this.printFormats;
+            return this.printFormats.filter(r => (r.code + r.nameTh + r.nameEn).toLowerCase().includes(q));
+        },
+        get filteredHeaderLabels() {
+            const q = this.headerLabelSearch.trim().toLowerCase();
+            if (!q) return this.headerLabels;
+            return this.headerLabels.filter(r => (r.code + r.desc).toLowerCase().includes(q));
+        },
+        get allSyncedTags() {
+            const rows = [];
+            this.brands.forEach(b => (b.tags || []).forEach(t => rows.push({ brand: this.brandLabel(b), tag: t })));
+            return rows;
+        },
+        get currentGroupFields() {
+            const g = this.fieldGroups.find(x => x.id === this.selectedGroupId);
+            return g ? g.fields : [];
+        },
+
+        brandLabel(b) { return b.code + ' : ' + b.nameEn; },
+        subBrandOptionsFor(brandType) { return brandType === 'KKF' ? ['Primary Brand', 'Secondary Brand', 'Alternative Brand'] : ['CO-Brand', 'OEM']; },
+        tagOptionsFor(brandLabelValue) {
+            const b = this.brands.find(x => this.brandLabel(x) === brandLabelValue);
+            if (!b || !b.tags || b.tags.length === 0) return ['(ยังไม่มีป้ายที่ sync จากระบบจัดซื้อ)'];
+            return b.tags;
+        },
+        hasTagStandard(brandLabelValue, tagName) {
+            return this.tagStandards.some(t => t.brand === brandLabelValue && t.tagName === tagName && this.isActive(t));
+        },
+        generateBrandCode(subBrandType) {
+            const prefixMap = { 'Primary Brand': 'P', 'Secondary Brand': 'S', 'Alternative Brand': 'A', 'CO-Brand': 'C', 'OEM': 'O' };
+            const prefix = prefixMap[subBrandType] || 'X';
+            const forbidden = ['00', '0O', 'S5', '5S', 'B8', '8B'];
+            for (let n = 1; n <= 9; n++) {
+                const code = prefix + n;
+                if (!this.brands.some(b => b.code === code) && !forbidden.includes(code)) return code;
+            }
+            return prefix + (this.brands.length + 1);
+        },
+        nextPrintFormatCode() {
+            const n = this.printFormats.length + 1;
+            return String(n).padStart(2, '0');
+        },
+        isActive(rec) {
+            const today = '2026-09-18';
+            if (rec.effectiveDate && today < rec.effectiveDate) return false;
+            if (rec.expireDate && today > rec.expireDate) return false;
+            return true;
+        },
+        toggles(listName, tag) {
+            if (!tag) return;
+            let list = this[listName];
+            this[listName] = list.includes(tag) ? list.filter(t => t !== tag) : [...list, tag];
+        },
+        openImage(title) { this.modalTitle = title; this.showImageModal = true; },
+        detailTitle() {
+            return { tag: 'รายละเอียดมาตรฐานการใช้ป้าย', usage: 'รายละเอียดมาตรฐานบรรจุภัณฑ์', brand: 'รายละเอียด Brand สินค้า', printFormat: 'รายละเอียดรูปแบบการพิมพ์ป้าย', headerLabel: 'รายละเอียดป้ายหัวห่อ' }[this.detailType] || 'รายละเอียด';
+        },
+        viewDetail(rec, type) { this.detail = rec; this.detailType = type; this.showDetailModal = true; },
+        deleteRecord(listName, rec) {
+            if (confirm('ยืนยันการลบรายการนี้?')) {
+                this[listName] = this[listName].filter(r => r.id !== rec.id);
+                this.showToast('ลบข้อมูลเรียบร้อยแล้ว');
+            }
+        },
+
+        goBrandList() { this.view = 'brandList'; },
+        goTagSync() { this.view = 'tagSync'; },
+        goTagList() { this.view = 'tagList'; },
+        goPrintFormatList() { this.view = 'printFormatList'; },
+        goHeaderLabelList() { this.view = 'headerLabelList'; },
+        goUsageList() { this.view = 'usageList'; },
+
+        openNewBrandForm() {
+            this.brandForm = makeBrandForm();
+            this.brandForm.code = this.generateBrandCode(this.brandForm.subBrandType);
+            this.view = 'brandForm';
+        },
+        openNewTagForm() { this.tagForm = makeTagForm(); this.view = 'tagForm'; },
+        openNewUsageForm() {
+            this.usageForm = makeUsageForm();
+            this.selectedCustomers = []; this.selectedProducts = []; this.selectedTwineSeries = []; this.selectedTrammelingTypes = []; this.selectedStickers = [];
+            this.view = 'usageForm';
+        },
+        openNewPrintFormatForm() {
+            this.printFormatForm = makePrintFormatForm();
+            this.printFormatForm.code = this.nextPrintFormatCode();
+            this.view = 'printFormatForm';
+        },
+        openNewHeaderLabelForm() {
+            this.headerForm = makeHeaderForm();
+            this.selectedGroupId = '02';
+            this.view = 'headerLabelForm';
+        },
+
+        onBrandTypeChange() {
+            const opts = this.subBrandOptionsFor(this.brandForm.brandType);
+            this.brandForm.subBrandType = opts[0];
+            this.brandForm.code = this.generateBrandCode(this.brandForm.subBrandType);
+        },
+        onSubBrandChange() { this.brandForm.code = this.generateBrandCode(this.brandForm.subBrandType); },
+        onTagBrandChange() { this.tagForm.tagName = this.tagOptionsFor(this.tagForm.brand)[0] || ''; },
+        onUsageBrandChange() { this.usageForm.tag = this.tagOptionsFor(this.usageForm.brand)[0] || ''; },
+
+        addCaptionField(fieldName) {
+            const d = FIELD_DEFAULTS[fieldName] || { caption: fieldName + ':', dataField: fieldName.replace(/\s+/g, ''), font: 'Arial-Regular-14pt' };
+            this.headerForm.captions.push({ caption: d.caption, fix: false, field: d.dataField, unit: '', font: d.font, print: true });
+        },
+        addEmptyCaptionRow() {
+            this.headerForm.captions.push({ caption: '', fix: false, field: '', unit: '', font: 'Arial-Regular-14pt', print: true });
+        },
+
+        saveBrand() {
+            const f = this.brandForm;
+            const newId = this.brands.length ? Math.max(...this.brands.map(r => r.id)) + 1 : 1;
+            this.brands.push({ id: newId, brandType: f.brandType, subBrandType: f.subBrandType, code: f.code, nameTh: f.nameTh, nameEn: f.nameEn, effectiveDate: f.effectiveDate, expireDate: f.expireDate, tags: [] });
+            this.view = 'brandList';
+            this.showToast('บันทึกข้อมูล Brand เรียบร้อยแล้ว (ยังไม่มีป้าย sync จากระบบจัดซื้อ)');
+        },
+        saveTagStandard() {
+            const f = this.tagForm;
+            const newId = this.tagStandards.length ? Math.max(...this.tagStandards.map(r => r.id)) + 1 : 1;
+            this.tagStandards.unshift({ id: newId, brand: f.brand, tagName: f.tagName, saleType: f.saleType, country: f.country, customer: f.customer, quality: f.quality, productType: f.productType, effectiveDate: f.effectiveDate, expireDate: f.expireDate });
+            this.view = 'tagList';
+            this.showToast('บันทึกเงื่อนไขมาตรฐานการใช้ป้ายเรียบร้อยแล้ว');
+        },
+        saveUsageRecord() {
+            const f = this.usageForm;
+            const customerLabel = this.selectedCustomers.length ? this.selectedCustomers.join(', ') : 'All (ทั้งหมด)';
+            const productLabel = this.selectedProducts.length ? this.selectedProducts.join(', ') : 'All (ทั้งหมด)';
+            const newId = this.usageRecords.length ? Math.max(...this.usageRecords.map(r => r.id)) + 1 : 1;
+            this.usageRecords.unshift({ id: newId, brand: f.brand, tag: f.tag, mode: f.mode, customerLabel, productLabel, bag: f.bag, sack: f.sack, effectiveDate: f.effectiveDate, expireDate: f.expireDate });
+            this.view = 'usageList';
+            this.showToast('บันทึกข้อมูลเงื่อนไขบรรจุภัณฑ์เรียบร้อยแล้ว');
+        },
+        savePrintFormat() {
+            const f = this.printFormatForm;
+            const newId = this.printFormats.length ? Math.max(...this.printFormats.map(r => r.id)) + 1 : 1;
+            this.printFormats.unshift({ id: newId, code: f.code, nameTh: f.nameTh, nameEn: f.nameEn, remark: f.remark, effectiveDate: f.effectiveDate, expireDate: f.expireDate, fields: f.fields.map(x => ({ ...x })) });
+            this.view = 'printFormatList';
+            this.showToast('บันทึกรูปแบบการพิมพ์ป้ายเรียบร้อยแล้ว');
+        },
+        saveHeaderLabel() {
+            const f = this.headerForm;
+            const newId = this.headerLabels.length ? Math.max(...this.headerLabels.map(r => r.id)) + 1 : 1;
+            this.headerLabels.unshift({ id: newId, code: f.code, desc: f.desc, effectiveDate: f.effectiveDate, expireDate: f.expireDate, hasImageInList: f.hasImageInList, printFromMaster: f.printFromMaster, captions: f.captions.map(c => ({ ...c })) });
+            this.view = 'headerLabelList';
+            this.showToast('บันทึกรูปแบบป้ายหัวห่อเรียบร้อยแล้ว');
+        },
+
+        showToast(msg) { this.toast = msg; setTimeout(() => { this.toast = null }, 3200); },
+        stub(msg) { this.showToast(msg || 'ส่วนนี้ยังไม่เปิดใช้งานใน demo นี้'); }
+    }
+}
+</script>
 </body>
 </html>
