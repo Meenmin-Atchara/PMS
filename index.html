@@ -56,8 +56,8 @@
         <div class="menu-item" @click="sidebarOpen.packaging = !sidebarOpen.packaging">1 ป้ายสินค้า</div>
         <div class="pl-4" x-show="sidebarOpen.packaging" x-cloak>
             <div class="block menu-item text-xs" :class="view.startsWith('brand') ? 'menu-current' : ''" @click="goBrandList()">1.1 ข้อมูล Brand สินค้า</div>
-            <div class="block menu-item text-xs" :class="view === 'tagSync' ? 'menu-current' : ''" @click="goTagSync()">1.2 ข้อมูลป้ายสินค้า</div>
-            <div class="block menu-item text-xs" :class="view.startsWith('tag') && view !== 'tagSync' ? 'menu-current' : ''" @click="goTagList()">1.3 มตฐ.เงื่อนไขการใช้ป้ายสินค้า</div>
+            <div class="block menu-item text-xs" :class="(view === 'tagSync' || view === 'tagRequestForm') ? 'menu-current' : ''" @click="goTagSync()">1.2 ข้อมูลป้ายสินค้า</div>
+            <div class="block menu-item text-xs" :class="(view === 'tagList' || view === 'tagForm') ? 'menu-current' : ''" @click="goTagList()">1.3 มตฐ.เงื่อนไขการใช้ป้ายสินค้า</div>
             <div class="block menu-item text-xs" :class="view.startsWith('printFormat') ? 'menu-current' : ''" @click="goPrintFormatList()">1.4 รูปแบบการพิมพ์ข้อมูลในป้าย</div>
             <div class="block menu-item text-xs" @click="stub()">1.5 Set รูปแบบการพิมพ์ป้ายสินค้า</div>
         </div>
@@ -97,6 +97,11 @@
             <div class="page-wrap">
                 <div class="flow-banner">▸ Brand เป็นข้อมูลที่จัดการภายในระบบนี้เอง (ไม่ได้ sync จากระบบจัดซื้อ) รหัสจะถูกสร้างอัตโนมัติตามหลักการรันรหัส แล้วนำไปใช้เลือกในเมนู 1.3 และ 10.1</div>
                 <div class="bg-white rounded-lg shadow-sm p-4">
+                    <div class="flex gap-1 border-b mb-4">
+                        <button type="button" @click="brandTab = 'active'; brandPage = 1" class="px-4 py-2 text-xs font-bold border-b-2 -mb-px" :class="brandTab === 'active' ? 'border-indigo-600 text-indigo-700' : 'border-transparent text-gray-500 hover:text-gray-700'">ข้อมูล Brand สินค้า Active</button>
+                        <button type="button" @click="brandTab = 'inactive'; brandPage = 1" class="px-4 py-2 text-xs font-bold border-b-2 -mb-px" :class="brandTab === 'inactive' ? 'border-indigo-600 text-indigo-700' : 'border-transparent text-gray-500 hover:text-gray-700'">ข้อมูล Brand สินค้า ที่หมดอายุ Inactive</button>
+                        <button type="button" @click="brandTab = 'deleted'; brandPage = 1" class="px-4 py-2 text-xs font-bold border-b-2 -mb-px" :class="brandTab === 'deleted' ? 'border-indigo-600 text-indigo-700' : 'border-transparent text-gray-500 hover:text-gray-700'">ข้อมูล Brand สินค้า ที่ถูกลบ</button>
+                    </div>
                     <div class="flex justify-between items-center mb-3">
                         <input type="text" x-model="brandSearch" placeholder="ค้นหา รหัส / รายละเอียด Brand..." class="input-box max-w-xs">
                         <span class="text-xs text-gray-500" x-text="`ทั้งหมด ${filteredBrands.length} รายการ`"></span>
@@ -110,28 +115,52 @@
                                     <th>รายละเอียด (TH)</th>
                                     <th>รายละเอียด (EN)</th>
                                     <th>ประกาศใช้ - หมดอายุ</th>
+                                    <th>ผู้บันทึก</th>
+                                    <th>วันที่บันทึก</th>
                                     <th>สถานะ</th>
                                     <th class="text-right">การจัดการ</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <template x-for="rec in filteredBrands" :key="rec.id">
+                                <template x-for="rec in paginatedBrands" :key="rec.id">
                                     <tr>
                                         <td class="font-semibold" x-text="rec.code"></td>
                                         <td><span class="tag" x-text="rec.brandType"></span> <span class="text-xs text-gray-500" x-text="rec.subBrandType"></span></td>
                                         <td x-text="rec.nameTh"></td>
                                         <td x-text="rec.nameEn"></td>
                                         <td class="text-xs" x-text="rec.effectiveDate + ' → ' + (rec.expireDate || 'ไม่มีกำหนด')"></td>
-                                        <td><span :class="isActive(rec) ? 'badge-active' : 'badge-expired'" x-text="isActive(rec) ? 'ใช้งานอยู่' : 'หมดอายุ'"></span></td>
+                                        <td class="text-xs" x-text="rec.recordedBy"></td>
+                                        <td class="text-xs" x-text="rec.recordedAt"></td>
+                                        <td>
+                                            <span x-show="brandTab !== 'deleted'" :class="isActive(rec) ? 'badge-active' : 'badge-expired'" x-text="isActive(rec) ? 'ใช้งานอยู่' : 'หมดอายุ'"></span>
+                                            <span x-show="brandTab === 'deleted'" class="badge-expired">ถูกลบ</span>
+                                        </td>
                                         <td class="text-right whitespace-nowrap">
                                             <button @click="viewDetail(rec, 'brand')" class="icon-btn bg-slate-100 text-slate-700 hover:bg-slate-200">ดูรายละเอียด</button>
-                                            <button @click="deleteRecord('brands', rec)" class="icon-btn bg-red-50 text-red-600 hover:bg-red-100">ลบ</button>
+                                            <button x-show="brandTab !== 'deleted'" @click="deleteBrand(rec)" class="icon-btn bg-red-50 text-red-600 hover:bg-red-100">ลบ</button>
+                                            <button x-show="brandTab === 'deleted'" @click="restoreBrand(rec)" class="icon-btn bg-emerald-50 text-emerald-600 hover:bg-emerald-100">กู้คืน</button>
                                         </td>
                                     </tr>
                                 </template>
-                                <tr x-show="filteredBrands.length === 0"><td colspan="7" class="text-center text-gray-400 py-8 text-sm">ไม่พบข้อมูลที่ค้นหา</td></tr>
+                                <tr x-show="filteredBrands.length === 0"><td colspan="9" class="text-center text-gray-400 py-8 text-sm">ไม่พบข้อมูลที่ค้นหา</td></tr>
                             </tbody>
                         </table>
+                    </div>
+                    <div class="flex justify-between items-center mt-3 text-xs text-gray-500">
+                        <div class="flex items-center gap-2">
+                            <span>Show :</span>
+                            <select class="input-box w-16" x-model.number="brandPageSize" @change="brandPage = 1">
+                                <option :value="5">5</option><option :value="10">10</option><option :value="25">25</option>
+                            </select>
+                            <span x-text="'/ ' + filteredBrands.length + ' entries'"></span>
+                        </div>
+                        <div class="flex items-center gap-1">
+                            <button type="button" @click="brandPage = 1" :disabled="brandPage <= 1" class="icon-btn bg-slate-100 disabled:opacity-40">⏮ First</button>
+                            <button type="button" @click="brandPage = Math.max(1, brandPage - 1)" :disabled="brandPage <= 1" class="icon-btn bg-slate-100 disabled:opacity-40">◀ Previous</button>
+                            <span class="px-2 font-bold" x-text="brandPage"></span>
+                            <button type="button" @click="brandPage = Math.min(brandTotalPages, brandPage + 1)" :disabled="brandPage >= brandTotalPages" class="icon-btn bg-slate-100 disabled:opacity-40">Next ▶</button>
+                            <button type="button" @click="brandPage = brandTotalPages" :disabled="brandPage >= brandTotalPages" class="icon-btn bg-slate-100 disabled:opacity-40">Last ⏭</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -157,11 +186,30 @@
                         </div>
                         <div>
                             <label class="label-text">รหัส BRAND *</label>
-                            <input class="input-box font-bold" x-model="brandForm.code" readonly>
-                            <p class="text-[11px] text-gray-400 mt-1">ระบบจะสร้างรหัสอัตโนมัติแบบ 2 หลัก: หลักแรก = Subbrand, หลักสอง = Running</p>
+                            <div class="flex gap-2">
+                                <input class="input-box font-bold" x-model="brandForm.code" readonly>
+                                <button type="button" @click="brandForm.code = generateBrandCode(brandForm.subBrandType)" class="bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold px-3 rounded whitespace-nowrap">⚡ Running</button>
+                            </div>
+                            <p class="text-[11px] text-gray-400 mt-1">
+                                ตัวอักษรนำที่ใช้ได้ในกลุ่ม "<span x-text="brandForm.subBrandType"></span>": <b x-text="prefixLettersFor(brandForm.subBrandType).join(' / ')"></b> — หลักสองรันอัตโนมัติ 1-9, 0, A-Z (เว้น 00, 0O, S5, 5S, B8, 8B)
+                            </p>
                         </div>
                         <div><label class="label-text">รายละเอียด (ไทย) *</label><input class="input-box" x-model="brandForm.nameTh" placeholder="เช่น เรือใบทอง พื้นแดง"></div>
                         <div><label class="label-text">รายละเอียด (อังกฤษ) *</label><input class="input-box" x-model="brandForm.nameEn" placeholder="เช่น Golden Ship On Red"></div>
+                        <div x-show="isCoBrandOrOem(brandForm.subBrandType)" class="border rounded-lg p-3 bg-amber-50 border-amber-200">
+                            <label class="label-text">รหัสลูกค้า * <span class="text-amber-600">(เลือกได้มากกว่า 1 รายการ)</span></label>
+                            <div class="input-box min-h-[44px] flex flex-wrap gap-2 items-center bg-white">
+                                <template x-for="code in brandForm.customerCodes" :key="code">
+                                    <span class="tag"><span x-text="customerLabel(code)"></span><button type="button" class="text-blue-700 font-bold" @click="toggleBrandCustomer(code)">×</button></span>
+                                </template>
+                                <template x-if="brandForm.customerCodes.length === 0"><span class="text-xs text-red-400">ยังไม่ได้เลือกรหัสลูกค้า</span></template>
+                                <select class="bg-transparent outline-none text-sm flex-1 min-w-[160px]" @change="toggleBrandCustomer($event.target.value); $event.target.value='';">
+                                    <option value=""></option>
+                                    <template x-for="c in customerMaster" :key="c.code"><option :value="c.code" x-text="c.code + ' : ' + c.fullName + ' (' + c.country + ')'"></option></template>
+                                </select>
+                            </div>
+                            <p class="text-[11px] text-gray-500 mt-1">* บังคับสำหรับ CO-Brand / OEM เท่านั้น — อ้างอิงรหัสลูกค้าจากฐานข้อมูลลูกค้า เช่น <span x-text="customerMaster[0] ? customerMaster[0].code : ''"></span></p>
+                        </div>
                         <div class="grid grid-cols-2 gap-4">
                             <div><label class="label-text">วันที่ประกาศใช้</label><input type="date" class="input-box" x-model="brandForm.effectiveDate"></div>
                             <div><label class="label-text">วันที่หมดอายุ</label><input type="date" class="input-box" x-model="brandForm.expireDate"></div>
@@ -169,15 +217,15 @@
                     </div>
                     <div class="space-y-4">
                         <div class="border rounded-lg p-4 text-center">
-                            <p class="text-xs text-gray-500 mb-2">เลือกรูปภาพ (ไม่เกิน 2000PX / 2MB)</p>
+                            <p class="text-xs text-gray-500 mb-2">เลือกรูปภาพ (ไม่เกิน 2000PX / 2MB) <span class="text-gray-400">— ไม่บังคับ</span></p>
                             <input type="file" class="input-box text-xs">
                         </div>
                         <div class="bg-gray-50 border rounded-lg p-4 text-xs text-gray-600 space-y-1">
                             <p class="font-bold text-gray-700 mb-2">หลักการรันรหัส Brand</p>
-                            <p>• KKF: Primary Brand / Secondary Brand / Alternative Brand</p>
-                            <p>• Customer: CO-Brand / OEM</p>
-                            <p>• รหัส 2 หลัก: หลักแรก = Subbrand, หลักสอง = Running</p>
-                            <p>• ห้ามใช้รหัสซ้ำ และไม่ใช้ 00, 0O / S5, 5S / B8, 8B</p>
+                            <p>• KKF: <b>P</b> = Primary Brand · <b>Q/R/S</b> = Secondary Brand · <b>A</b> = Alternative Brand</p>
+                            <p>• Customer: <b>C-L</b> (10 ตัวอักษร) = CO-Brand · <b>M/N/O/T-Z</b> (10 ตัวอักษร) = OEM (เว้น P/Q/R/S)</p>
+                            <p>• รหัส 2 หลัก: หลักแรก = ตัวอักษรนำของกลุ่ม Subbrand, หลักสอง = Running (1-9, 0, A-Z = 36 รหัส/ตัวอักษร)</p>
+                            <p>• ไม่ใช้ตัวอักษรซ้ำกันในแต่ละกลุ่ม และไม่ใช้รหัสคู่ 00, 0O / S5, 5S / B8, 8B</p>
                         </div>
                     </div>
                 </div>
@@ -194,7 +242,10 @@
         <div class="page-wrap">
             <div class="page-title">
                 <span>ข้อมูลป้ายสินค้า</span>
-                <button @click="syncTags()" class="bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold px-4 py-2 rounded-lg">⟳ ซิงค์ข้อมูลจากระบบจัดซื้อ</button>
+                <div class="flex gap-2">
+                    <button @click="openTagRequestForm()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-4 py-2 rounded-lg">✚ ขอรหัสป้ายใหม่</button>
+                    <button @click="syncTags()" class="bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold px-4 py-2 rounded-lg">⟳ ซิงค์ข้อมูลจากระบบจัดซื้อ</button>
+                </div>
             </div>
             <div class="flow-banner">▸ รหัสและรายละเอียดป้ายสินค้าทั้งหมด <b>sync มาจากระบบจัดซื้อผ่าน API</b> โดยอัตโนมัติ ไม่สามารถเพิ่ม/แก้ไขในระบบนี้ได้โดยตรง — ใช้เพื่อดูอ้างอิงก่อนไปตั้งค่าที่เมนู 1.3</div>
             <div class="bg-white rounded-lg shadow-sm p-4 mt-3">
@@ -212,6 +263,113 @@
                             <tr x-show="allSyncedTags.length === 0"><td colspan="3" class="text-center text-gray-400 py-8 text-sm">ยังไม่มีป้ายที่ sync — Brand ใหม่ต้องรอซิงค์จากระบบจัดซื้อ</td></tr>
                         </tbody>
                     </table>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- ============ ขอรหัสป้ายใหม่ (Request Tag Code) ============ -->
+    <template x-if="view === 'tagRequestForm'">
+        <div class="page-wrap">
+            <div class="modal-container">
+                <div class="header-bg"><span>การสร้างรหัส ป้ายสินค้า (10 หลัก)</span><button @click="goTagSync()" class="text-white/90 hover:text-white">✕</button></div>
+
+                <div class="p-6 space-y-5">
+                    <!-- แถวบน: เลขที่ขอรหัส / วันที่ / อ้างอิง -->
+                    <div class="grid grid-cols-4 gap-4">
+                        <div>
+                            <label class="label-text">เลขที่ขอรหัส</label>
+                            <div class="flex gap-2">
+                                <input class="input-box font-semibold" x-model="tagRequest.requestNo" readonly>
+                                <button type="button" @click="renewRequestNo()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold px-2 rounded whitespace-nowrap">Renew Code</button>
+                            </div>
+                        </div>
+                        <div><label class="label-text">วันที่ขอรหัส</label><input class="input-box" x-model="tagRequest.requestDate" readonly></div>
+                        <div><label class="label-text">เลขที่อ้างอิง</label><input class="input-box" x-model="tagRequest.refNo" placeholder="(ถ้ามี)"></div>
+                        <div><label class="label-text">เลขที่ KQT</label><input class="input-box" x-model="tagRequest.kqtNo" placeholder="(ถ้ามี)"></div>
+                    </div>
+
+                    <div class="grid grid-cols-4 gap-4 items-end">
+                        <div class="col-span-2"><label class="label-text">Customer</label><input class="input-box" x-model="tagRequest.customer" placeholder="เว้นว่างหากเป็นแบรนด์ KKF เอง"></div>
+                        <div>
+                            <label class="label-text">สินค้า</label>
+                            <button type="button" @click="tagRequest.isKkf = !tagRequest.isKkf" class="w-full py-2 rounded-lg text-sm font-bold" :class="tagRequest.isKkf ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-600'" x-text="tagRequest.isKkf ? 'KKF' : 'Customer'"></button>
+                        </div>
+                        <div><button type="button" @click="checkTagRequest()" class="w-full bg-sky-600 hover:bg-sky-700 text-white text-sm font-bold py-2 rounded-lg">✓ ตรวจสอบข้อมูล</button></div>
+                    </div>
+
+                    <!-- กล่องแดง: ข้อมูลที่ร้องขอการสร้างรหัสป้ายสินค้า -->
+                    <div class="border-2 border-red-400 rounded-lg p-4 space-y-4">
+                        <div class="font-bold text-sm text-gray-700">ข้อมูลที่ร้องขอการสร้างรหัสป้ายสินค้า</div>
+                        <div class="grid grid-cols-4 gap-4">
+                            <div><label class="label-text">รหัสหัวข้อบรรจุภัณฑ์</label>
+                                <select class="input-box" x-model="tagRequest.categoryCode">
+                                    <template x-for="c in packagingCategories" :key="c.code"><option :value="c.code" x-text="c.code + ' : ' + c.label"></option></template>
+                                </select>
+                            </div>
+                            <div><label class="label-text">รหัส Brand <span class="local-note">จาก 1.1</span></label>
+                                <select class="input-box" x-model.number="tagRequest.brandId">
+                                    <template x-for="b in brands" :key="b.id"><option :value="b.id" x-text="b.code + ' : ' + b.nameEn"></option></template>
+                                </select>
+                            </div>
+                            <div><label class="label-text">รหัสป้าย (คู่ 4)</label><input class="input-box" maxlength="2" x-model="tagRequest.labelCode" placeholder="เช่น 72"></div>
+                            <div></div>
+                        </div>
+                        <div>
+                            <label class="label-text">ลักษณะป้าย (คู่ 5)</label>
+                            <div class="grid grid-cols-4 gap-4">
+                                <div><label class="label-text">รหัส 1 คู่ 5 (ลำดับรัน)</label>
+                                    <select class="input-box" x-model="tagRequest.runningDigit">
+                                        <template x-for="d in '0123456789'.split('')" :key="d"><option :value="d" x-text="d"></option></template>
+                                    </select>
+                                </div>
+                                <div class="col-span-2"><label class="label-text">รหัส 2 คู่ 5 (ประเภทวัสดุป้าย)</label>
+                                    <select class="input-box" x-model="tagRequest.materialType">
+                                        <template x-for="m in materialTypes" :key="m.code"><option :value="m.code" x-text="m.code + ' : ' + m.label"></option></template>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ข้อมูล Spec ป้าย -->
+                    <div>
+                        <div class="font-bold text-sm text-gray-700 mb-2">ข้อมูล Spec ป้าย</div>
+                        <div class="grid grid-cols-3 gap-4">
+                            <div><label class="label-text">ประเภท Brand</label><input class="input-box bg-gray-100" readonly :value="selectedBrandForRequest ? (selectedBrandForRequest.subBrandType) : ''"></div>
+                            <div><label class="label-text">ชื่อ Brand</label><input class="input-box bg-gray-100" readonly :value="selectedBrandForRequest ? (selectedBrandForRequest.code + ' : ' + selectedBrandForRequest.nameEn) : ''"></div>
+                            <div><label class="label-text">รหัสป้าย</label><input class="input-box bg-gray-100" readonly :value="tagRequest.labelCode"></div>
+                        </div>
+                        <div class="grid grid-cols-3 gap-4 mt-3">
+                            <div class="col-span-2"><label class="label-text">ลักษณะป้าย</label><input class="input-box bg-gray-100" readonly :value="tagRequest.runningDigit + ' : ลำดับรัน · ' + tagRequest.materialType + ' : ' + materialLabelOf(tagRequest.materialType)"></div>
+                            <div><label class="label-text">หมายเหตุ</label><input class="input-box" x-model="tagRequest.remark"></div>
+                        </div>
+                    </div>
+
+                    <!-- ผลลัพธ์รหัส -->
+                    <div class="border-t pt-4">
+                        <div class="font-bold text-sm text-gray-700 mb-2">รายละเอียดการสร้างรหัสป้ายสินค้า</div>
+                        <div class="text-xs text-gray-500 mb-1">รหัสป้ายสินค้า <span class="font-bold">(10 หลัก)</span></div>
+                        <div class="text-2xl font-mono font-bold text-indigo-700 mb-3" x-text="generatedTagCode"></div>
+                        <div class="grid grid-cols-6 gap-2 text-center text-xs">
+                            <div><div class="bg-gray-100 rounded-full w-5 h-5 flex items-center justify-center mx-auto mb-1 font-bold">1</div><div class="input-box" x-text="tagRequest.categoryCode"></div><div class="text-gray-400 mt-1">หมวดบรรจุภัณฑ์</div></div>
+                            <div><div class="bg-gray-100 rounded-full w-5 h-5 flex items-center justify-center mx-auto mb-1 font-bold">2</div><div class="input-box" x-text="selectedBrandForRequest ? selectedBrandForRequest.code.charAt(0) : ''"></div><div class="text-gray-400 mt-1">Brand (ตัวอักษร)</div></div>
+                            <div><div class="bg-gray-100 rounded-full w-5 h-5 flex items-center justify-center mx-auto mb-1 font-bold">3</div><div class="input-box" x-text="selectedBrandForRequest ? selectedBrandForRequest.code.slice(1) : ''"></div><div class="text-gray-400 mt-1">Brand (running)</div></div>
+                            <div><div class="bg-gray-100 rounded-full w-5 h-5 flex items-center justify-center mx-auto mb-1 font-bold">4</div><div class="input-box" x-text="tagRequest.labelCode"></div><div class="text-gray-400 mt-1">รหัสป้าย</div></div>
+                            <div><div class="bg-gray-100 rounded-full w-5 h-5 flex items-center justify-center mx-auto mb-1 font-bold">5</div><div class="input-box" x-text="tagRequest.runningDigit"></div><div class="text-gray-400 mt-1">ลำดับรัน</div></div>
+                            <div><div class="bg-gray-100 rounded-full w-5 h-5 flex items-center justify-center mx-auto mb-1 font-bold">6</div><div class="input-box" x-text="tagRequest.materialType"></div><div class="text-gray-400 mt-1">ประเภทวัสดุ</div></div>
+                        </div>
+                    </div>
+
+                    <div x-show="requestStatus === 'ready'" class="bg-emerald-50 border border-emerald-300 rounded-lg p-4 flex items-center justify-between">
+                        <div class="text-sm text-emerald-800">✔ ระบบจัดซื้อส่งรหัสกลับมาแล้ว กรุณาตรวจสอบและยืนยันเพื่อเพิ่มป้ายนี้เข้า Brand ที่เลือก</div>
+                        <button @click="confirmTagRequest()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold px-5 py-2 rounded-lg whitespace-nowrap ml-4">ยืนยันรหัสนี้</button>
+                    </div>
+                </div>
+
+                <div class="p-4 border-t flex justify-end gap-2 bg-gray-50">
+                    <button @click="goTagSync()" class="px-6 py-2 border rounded text-sm">ยกเลิก</button>
+                    <button @click="submitTagRequest()" :disabled="requestStatus === 'loading'" class="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded text-sm font-bold disabled:opacity-50" x-text="requestStatus === 'loading' ? 'กำลังขอรหัส...' : '📨 ส่งคำขอรหัสไปที่ระบบจัดซื้อ'"></button>
                 </div>
             </div>
         </div>
@@ -851,9 +1009,12 @@
                     <div class="flex justify-between border-b pb-2"><span class="text-gray-500">ประเภท / Subbrand</span><span x-text="detail?.brandType + ' / ' + detail?.subBrandType"></span></div>
                     <div class="flex justify-between border-b pb-2"><span class="text-gray-500">รายละเอียด (TH)</span><span x-text="detail?.nameTh"></span></div>
                     <div class="flex justify-between border-b pb-2"><span class="text-gray-500">รายละเอียด (EN)</span><span x-text="detail?.nameEn"></span></div>
+                    <div class="flex justify-between border-b pb-2" x-show="(detail?.customerCodes || []).length > 0"><span class="text-gray-500">รหัสลูกค้า (CO-Brand/OEM)</span><span class="text-right" x-text="(detail?.customerCodes || []).map(c => customerLabel(c)).join(', ')"></span></div>
                     <div class="flex justify-between border-b pb-2"><span class="text-gray-500">จำนวนป้ายที่ sync แล้ว</span><span x-text="(detail?.tags?.length || 0) + ' ป้าย'"></span></div>
                     <div class="flex justify-between border-b pb-2"><span class="text-gray-500">วันที่ประกาศใช้</span><span x-text="detail?.effectiveDate"></span></div>
-                    <div class="flex justify-between pb-2"><span class="text-gray-500">วันที่หมดอายุ</span><span x-text="detail?.expireDate || 'ไม่มีกำหนด'"></span></div>
+                    <div class="flex justify-between border-b pb-2"><span class="text-gray-500">วันที่หมดอายุ</span><span x-text="detail?.expireDate || 'ไม่มีกำหนด'"></span></div>
+                    <div class="flex justify-between border-b pb-2"><span class="text-gray-500">ผู้บันทึก</span><span x-text="detail?.recordedBy"></span></div>
+                    <div class="flex justify-between pb-2"><span class="text-gray-500">วันที่บันทึก</span><span x-text="detail?.recordedAt"></span></div>
                 </div>
             </template>
             <template x-if="detailType === 'printFormat'">
@@ -890,6 +1051,15 @@
 <div class="toast" x-show="toast" x-transition x-cloak><span class="text-green-400">✔</span><span x-text="toast"></span></div>
 
 <script>
+// ตัวอักษรนำของรหัส Brand ต่อประเภท Subbrand ตามเอกสาร "นิยามแบรนด์และหลักการรันรหัสในระบบ Master data"
+const SUBBRAND_PREFIXES = {
+    'Primary Brand': ['P'],
+    'Secondary Brand': ['Q', 'R', 'S'],
+    'Alternative Brand': ['A'],
+    'CO-Brand': ['C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'],
+    'OEM': ['M', 'N', 'O', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
+};
+
 const PRINT_FIELD_DEFS = [
     { key: 'twine',  th: 'เบอร์ใย',      en: 'TWINE' },
     { key: 'mesh',   th: 'ขนาดตา',      en: 'MESH' },
@@ -929,19 +1099,19 @@ function makeTagForm() {
         saleType: 'ขายต่างประเทศ (Export Sales)', country: 'All (ทุกประเทศ)', customer: 'All (ทุกรหัสลูกค้า)',
         quality: 'P (Premium)', productGroup: 'All (ทุกกลุ่มประเภทสินค้า)', productType: 'All (ทั้งหมด)',
         trammelingType: 'All (ทั้งหมด)', twineSeries: 'All (ทั้งหมด)', twineOnLabel: '0.30 mm', earColorCode: 'YLM90',
-        brand: 'ZK : GOLDEN SHIP ON RED', tagName: '0ช : ป้ายเรือใบทองพื้นแดง', oldTagCode: '',
+        brand: 'P1 : GOLDEN SHIP ON RED', tagName: '0ช : ป้ายเรือใบทองพื้นแดง', oldTagCode: '',
         knot: 'DK (Double Knot)', ovenType: 'อบ YOKO', effectiveDate: '2026-09-18', expireDate: ''
     };
 }
 function makeUsageForm() {
     return {
-        mode: 'Specific', brand: 'ZK : GOLDEN SHIP ON RED', tag: '0ช : ป้ายเรือใบทองพื้นแดง',
+        mode: 'Specific', brand: 'P1 : GOLDEN SHIP ON RED', tag: '0ช : ป้ายเรือใบทองพื้นแดง',
         bag: 'ZF : ถุงใสพิมพ์โลโก้', tape: 'P5 : สติกเกอร์ เรือใบทองพื้นแดง', sack: '10 : กระสอบสีเหลืองไม่มีแถบ',
         strap: '01 : สีเหลือง LOGO เรือใบ', effectiveDate: '2026-09-18', expireDate: ''
     };
 }
 function makeBrandForm() {
-    return { brandType: 'KKF', subBrandType: 'Primary Brand', code: '', nameTh: '', nameEn: '', effectiveDate: '2026-09-18', expireDate: '' };
+    return { brandType: 'KKF', subBrandType: 'Primary Brand', code: '', nameTh: '', nameEn: '', effectiveDate: '2026-09-18', expireDate: '', customerCodes: [] };
 }
 function makePrintFormatForm() {
     return {
@@ -973,12 +1143,45 @@ function app() {
 
         sidebarOpen: { packaging2: true, packaging: true, packagingUsage: true },
 
+        // ===== ขอรหัสป้ายใหม่ (10 หลัก) =====
+        requestStatus: 'draft',
+        tagRequestCounter: 5,
+        packagingCategories: [
+            { code: '2901', label: 'ป้ายสินค้า (Label)' },
+            { code: '2902', label: 'ถุงบรรจุสินค้า (Bag)' },
+            { code: '2903', label: 'กระสอบผ้าใบ (Sack)' }
+        ],
+        materialTypes: [
+            { code: 'A', label: 'กระดาษอาร์มันแนวตั้ง (Vertical Armin Paper)' },
+            { code: 'B', label: 'สติกเกอร์ (Sticker)' },
+            { code: 'U', label: 'กระดาษคู่ (Double Paper)' },
+            { code: 'X', label: 'พลาสติก (Plastic)' }
+        ],
+        tagRequest: {
+            requestNo: '', requestDate: '', refNo: '', kqtNo: '', customer: '', isKkf: true,
+            categoryCode: '2901', brandId: 1, labelCode: '72', runningDigit: '1', materialType: 'A', remark: ''
+        },
+
         // ===== Master data =====
         brands: [
-            { id: 1, brandType: 'KKF', subBrandType: 'Primary Brand', code: 'ZK', nameTh: 'เรือใบทอง พื้นแดง', nameEn: 'GOLDEN SHIP ON RED', effectiveDate: '2025-01-01', expireDate: '', tags: ['0ช : ป้ายเรือใบทองพื้นแดง', '0ด : ป้ายเรือใบทองพื้นน้ำเงิน'] },
-            { id: 2, brandType: 'KKF', subBrandType: 'Secondary Brand', code: 'MY', nameTh: 'ดาวทะเลเมียนมา', nameEn: 'MYANMAR OCEAN STAR', effectiveDate: '2025-01-01', expireDate: '', tags: ['0ด : ป้ายดาวทะเลพื้นน้ำเงิน'] },
-            { id: 3, brandType: 'Customer', subBrandType: 'CO-Brand', code: 'C1', nameTh: 'คลื่นฟ้าเวียดนาม', nameEn: 'VIETNAM BLUE WAVE', effectiveDate: '2025-01-01', expireDate: '', tags: ['0ค : ป้ายคลื่นฟ้าพื้นขาว'] }
+            { id: 1, brandType: 'KKF', subBrandType: 'Primary Brand', code: 'P1', nameTh: 'เรือใบทอง พื้นแดง', nameEn: 'GOLDEN SHIP ON RED', effectiveDate: '2025-01-01', expireDate: '', recordedBy: 'Migrate', recordedAt: '31/07/2021 00:00', deleted: false, customerCodes: [], tags: ['0ช : ป้ายเรือใบทองพื้นแดง', '0ด : ป้ายเรือใบทองพื้นน้ำเงิน'] },
+            { id: 2, brandType: 'KKF', subBrandType: 'Secondary Brand', code: 'S1', nameTh: 'ดาวทะเลเมียนมา', nameEn: 'MYANMAR OCEAN STAR', effectiveDate: '2025-01-01', expireDate: '2025-12-31', recordedBy: 'Migrate', recordedAt: '31/07/2021 00:00', deleted: false, customerCodes: [], tags: ['0ด : ป้ายดาวทะเลพื้นน้ำเงิน'] },
+            { id: 3, brandType: 'Customer', subBrandType: 'CO-Brand', code: 'C1', nameTh: 'คลื่นฟ้าเวียดนาม', nameEn: 'VIETNAM BLUE WAVE', effectiveDate: '2025-01-01', expireDate: '', recordedBy: 'นางสุลีพร มีกุล', recordedAt: '19/08/2021 13:31', deleted: false, customerCodes: ['FI01', 'FI02'], tags: ['0ค : ป้ายคลื่นฟ้าพื้นขาว'] }
         ],
+        // ตัวอย่างฐานข้อมูลรหัสลูกค้า (Customer Master) ใช้ผูกกับ Brand ประเภท CO-Brand / OEM
+        customerMaster: [
+            { code: 'ES01', codeOld: 'E0605', fullName: 'EURO RED VIGO, S.L.', country: 'ES : SPAIN' },
+            { code: 'ES02', codeOld: 'E0610', fullName: 'DEAD STOCK SPAIN', country: 'ES : SPAIN' },
+            { code: 'ES03', codeOld: 'E0601', fullName: 'PALONES S,L,', country: 'ES : SPAIN' },
+            { code: 'ES04', codeOld: 'E0606', fullName: 'EFECTOS NAVALES LATITUD S.L.', country: 'ES : SPAIN' },
+            { code: 'ES05', codeOld: 'E0608', fullName: 'GRUP EL REMITGER,S.L.', country: 'ES : SPAIN' },
+            { code: 'ES06', codeOld: 'E0609', fullName: 'RAUL AMOROS', country: 'ES : SPAIN' },
+            { code: 'FI01', codeOld: 'E0103', fullName: 'KIVIKANGAS OY', country: 'FI : FINLAND' },
+            { code: 'FI02', codeOld: 'E0104', fullName: 'OY LINDEMAN AB', country: 'FI : FINLAND' },
+            { code: 'FI03', codeOld: 'E0105', fullName: 'คุณบรรจบพร โพธิ์ศรี', country: 'FI : FINLAND' },
+            { code: 'FI04', codeOld: 'E0112', fullName: 'BJORKO TELNFABRIK AB FINLAND', country: 'FI : FINLAND' }
+        ],
+        brandTab: 'active', brandPage: 1, brandPageSize: 10,
         customerCodes: ['All (ทั้งหมด)', 'C001', 'C002', 'C003'],
         productTypes: ['M : MONO NET', 'N : MULTI FILAMENT NET', 'X : MONO LINE', 'Y : NYLON TWINE'],
         twineSeries: ['500 g / spool', '1 kg / spool', '2 kg / spool'],
@@ -1000,13 +1203,13 @@ function app() {
         headerForm: makeHeaderForm(),
 
         tagStandards: [
-            { id: 1, brand: 'ZK : GOLDEN SHIP ON RED', tagName: '0ช : ป้ายเรือใบทองพื้นแดง', saleType: 'ขายต่างประเทศ (Export Sales)', country: 'All (ทุกประเทศ)', customer: 'All (ทุกรหัสลูกค้า)', quality: 'P (Premium)', productType: 'M : MONO NET', effectiveDate: '2026-06-24', expireDate: '2030-01-01' },
-            { id: 2, brand: 'MY : MYANMAR OCEAN STAR', tagName: '0ด : ป้ายดาวทะเลพื้นน้ำเงิน', saleType: 'ขายในประเทศ (Domestic Sales)', country: 'Thailand', customer: 'C002', quality: 'S (Standard)', productType: 'N : MULTI FILAMENT NET', effectiveDate: '2025-01-01', expireDate: '2025-12-31' }
+            { id: 1, brand: 'P1 : GOLDEN SHIP ON RED', tagName: '0ช : ป้ายเรือใบทองพื้นแดง', saleType: 'ขายต่างประเทศ (Export Sales)', country: 'All (ทุกประเทศ)', customer: 'All (ทุกรหัสลูกค้า)', quality: 'P (Premium)', productType: 'M : MONO NET', effectiveDate: '2026-06-24', expireDate: '2030-01-01' },
+            { id: 2, brand: 'S1 : MYANMAR OCEAN STAR', tagName: '0ด : ป้ายดาวทะเลพื้นน้ำเงิน', saleType: 'ขายในประเทศ (Domestic Sales)', country: 'Thailand', customer: 'C002', quality: 'S (Standard)', productType: 'N : MULTI FILAMENT NET', effectiveDate: '2025-01-01', expireDate: '2025-12-31' }
         ],
         usageRecords: [
-            { id: 1, brand: 'ZK : GOLDEN SHIP ON RED', tag: '0ช : ป้ายเรือใบทองพื้นแดง', mode: 'Specific', customerLabel: 'All (ทั้งหมด)', productLabel: 'M : MONO NET', bag: 'ZF : ถุงใสพิมพ์โลโก้', sack: '10 : กระสอบสีเหลืองไม่มีแถบ', stickerLabel: '(S1-สติ๊กเกอร์ระวังเกี่ยวขาด)', effectiveDate: '2026-06-24', expireDate: '2030-01-01' },
-            { id: 2, brand: 'MY : MYANMAR OCEAN STAR', tag: '0ด : ป้ายดาวทะเลพื้นน้ำเงิน', mode: 'General', customerLabel: 'C002', productLabel: 'N : MULTI FILAMENT NET', zoneLabel: 'Zone B (อาเซียน)', countryLabel: 'Myanmar', bag: 'ZG : ถุงทึบพิมพ์โลโก้', sack: '11 : กระสอบสีขาวมีแถบฟ้า', stickerLabel: 'ไม่ติดสติ๊กเกอร์', effectiveDate: '2025-01-01', expireDate: '2025-12-31' },
-            { id: 3, brand: 'VN : VIETNAM BLUE WAVE', tag: '0ค : ป้ายคลื่นฟ้าพื้นขาว', mode: 'Specific', customerLabel: 'C001, C003', productLabel: 'X : MONO LINE', bag: 'ZF : ถุงใสพิมพ์โลโก้', sack: '10 : กระสอบสีเหลืองไม่มีแถบ', stickerLabel: 'ไม่ติดสติ๊กเกอร์', effectiveDate: '2026-01-01', expireDate: '' }
+            { id: 1, brand: 'P1 : GOLDEN SHIP ON RED', tag: '0ช : ป้ายเรือใบทองพื้นแดง', mode: 'Specific', customerLabel: 'All (ทั้งหมด)', productLabel: 'M : MONO NET', bag: 'ZF : ถุงใสพิมพ์โลโก้', sack: '10 : กระสอบสีเหลืองไม่มีแถบ', stickerLabel: '(S1-สติ๊กเกอร์ระวังเกี่ยวขาด)', effectiveDate: '2026-06-24', expireDate: '2030-01-01' },
+            { id: 2, brand: 'S1 : MYANMAR OCEAN STAR', tag: '0ด : ป้ายดาวทะเลพื้นน้ำเงิน', mode: 'General', customerLabel: 'C002', productLabel: 'N : MULTI FILAMENT NET', zoneLabel: 'Zone B (อาเซียน)', countryLabel: 'Myanmar', bag: 'ZG : ถุงทึบพิมพ์โลโก้', sack: '11 : กระสอบสีขาวมีแถบฟ้า', stickerLabel: 'ไม่ติดสติ๊กเกอร์', effectiveDate: '2025-01-01', expireDate: '2025-12-31' },
+            { id: 3, brand: 'C1 : VIETNAM BLUE WAVE', tag: '0ค : ป้ายคลื่นฟ้าพื้นขาว', mode: 'Specific', customerLabel: 'C001, C003', productLabel: 'X : MONO LINE', bag: 'ZF : ถุงใสพิมพ์โลโก้', sack: '10 : กระสอบสีเหลืองไม่มีแถบ', stickerLabel: 'ไม่ติดสติ๊กเกอร์', effectiveDate: '2026-01-01', expireDate: '' }
         ],
         printFormats: [
             { id: 1, code: '01', nameTh: 'ประเภทที่ 1 ขายต่าง ทุกโซน', nameEn: 'International Sales - All Regions', remark: 'สินค้ากลุ่ม ต่างประเทศ', effectiveDate: '2026-06-19', expireDate: '2030-01-01', fields: makePrintFormatForm().fields }
@@ -1015,10 +1218,31 @@ function app() {
             { id: 1, code: 'LBL-BIRDNET-01', desc: 'ป้ายหัวห่อ BIRD NET มาตรฐาน', effectiveDate: '2026-09-18', expireDate: '', captions: makeHeaderForm().captions }
         ],
 
+        get selectedBrandForRequest() {
+            return this.brands.find(b => b.id === this.tagRequest.brandId) || null;
+        },
+        get generatedTagCode() {
+            const b = this.selectedBrandForRequest;
+            const brandCode = b ? b.code : '--';
+            const label = (this.tagRequest.labelCode || '--').toString().padEnd(2, '-').slice(0, 2).toUpperCase();
+            return this.tagRequest.categoryCode + brandCode + label + this.tagRequest.runningDigit + this.tagRequest.materialType;
+        },
         get filteredBrands() {
             const q = this.brandSearch.trim().toLowerCase();
-            if (!q) return this.brands;
-            return this.brands.filter(r => (r.code + r.nameTh + r.nameEn).toLowerCase().includes(q));
+            let list = this.brands.filter(r => {
+                if (this.brandTab === 'deleted') return !!r.deleted;
+                if (r.deleted) return false;
+                return this.brandTab === 'active' ? this.isActive(r) : !this.isActive(r);
+            });
+            if (q) list = list.filter(r => (r.code + r.nameTh + r.nameEn).toLowerCase().includes(q));
+            return list;
+        },
+        get brandTotalPages() {
+            return Math.max(1, Math.ceil(this.filteredBrands.length / this.brandPageSize));
+        },
+        get paginatedBrands() {
+            const start = (this.brandPage - 1) * this.brandPageSize;
+            return this.filteredBrands.slice(start, start + this.brandPageSize);
         },
         get filteredTagStandards() {
             const q = this.tagSearch.trim().toLowerCase();
@@ -1060,15 +1284,21 @@ function app() {
         hasTagStandard(brandLabelValue, tagName) {
             return this.tagStandards.some(t => t.brand === brandLabelValue && t.tagName === tagName && this.isActive(t));
         },
+        prefixLettersFor(subBrandType) { return SUBBRAND_PREFIXES[subBrandType] || ['X']; },
         generateBrandCode(subBrandType) {
-            const prefixMap = { 'Primary Brand': 'P', 'Secondary Brand': 'S', 'Alternative Brand': 'A', 'CO-Brand': 'C', 'OEM': 'O' };
-            const prefix = prefixMap[subBrandType] || 'X';
+            const prefixes = this.prefixLettersFor(subBrandType);
             const forbidden = ['00', '0O', 'S5', '5S', 'B8', '8B'];
-            for (let n = 1; n <= 9; n++) {
-                const code = prefix + n;
-                if (!this.brands.some(b => b.code === code) && !forbidden.includes(code)) return code;
+            // รหัสหลักที่สอง: วิ่ง 1-9 ก่อน แล้ว 0 แล้วค่อย A-Z (รวม 36 รหัสต่อตัวอักษรนำ)
+            const runningChars = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', ...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')];
+            for (const prefix of prefixes) {
+                for (const r of runningChars) {
+                    const code = prefix + r;
+                    if (forbidden.includes(code)) continue;
+                    if (!this.brands.some(b => b.code === code)) return code;
+                }
             }
-            return prefix + (this.brands.length + 1);
+            // กลุ่มเต็มทุกตัวอักษรแล้ว (กรณี demo ไม่น่าเกิดขึ้นจริง)
+            return prefixes[0] + Date.now().toString().slice(-2);
         },
         nextPrintFormatCode() {
             const n = this.printFormats.length + 1;
@@ -1099,6 +1329,53 @@ function app() {
 
         goBrandList() { this.view = 'brandList'; },
         goTagSync() { this.view = 'tagSync'; },
+        syncTags() { this.showToast('ซิงค์ข้อมูลป้ายจากระบบจัดซื้อสำเร็จ — ไม่มีรายการใหม่ (mock)'); },
+
+        materialLabelOf(code) {
+            const m = this.materialTypes.find(x => x.code === code);
+            return m ? m.label : '';
+        },
+        nextRequestNo() {
+            this.tagRequestCounter += 1;
+            return 'REQ-2610' + String(this.tagRequestCounter).padStart(4, '0');
+        },
+        renewRequestNo() { this.tagRequest.requestNo = this.nextRequestNo(); },
+        openTagRequestForm() {
+            this.requestStatus = 'draft';
+            this.tagRequest = {
+                requestNo: this.nextRequestNo(), requestDate: '1/10/2026', refNo: '', kqtNo: '', customer: '', isKkf: true,
+                categoryCode: '2901', brandId: this.brands[0] ? this.brands[0].id : 1, labelCode: '72', runningDigit: '1', materialType: 'A', remark: ''
+            };
+            this.view = 'tagRequestForm';
+        },
+        checkTagRequest() {
+            if (!this.tagRequest.labelCode) {
+                this.showToast('กรุณากรอกรหัสป้าย (คู่ 4) ก่อนตรวจสอบ');
+                return;
+            }
+            this.showToast('ตรวจสอบข้อมูลผ่าน — รหัส ' + this.generatedTagCode + ' ยังไม่ซ้ำในระบบ');
+        },
+        submitTagRequest() {
+            if (!this.tagRequest.labelCode) {
+                this.showToast('กรุณากรอกรหัสป้าย (คู่ 4) ก่อนส่งคำขอ');
+                return;
+            }
+            this.requestStatus = 'loading';
+            setTimeout(() => {
+                this.requestStatus = 'ready';
+                this.showToast('ระบบจัดซื้อส่งรหัส ' + this.generatedTagCode + ' กลับมาแล้ว');
+            }, 900);
+        },
+        confirmTagRequest() {
+            const b = this.selectedBrandForRequest;
+            if (!b) return;
+            const code = this.generatedTagCode;
+            const newTagLabel = code + ' : ป้าย ' + b.nameTh + ' (' + this.materialLabelOf(this.tagRequest.materialType) + ')';
+            if (!b.tags.includes(newTagLabel)) b.tags.push(newTagLabel);
+            this.requestStatus = 'draft';
+            this.view = 'tagSync';
+            this.showToast('เพิ่มป้าย ' + code + ' เข้า Brand ' + b.code + ' เรียบร้อยแล้ว');
+        },
         goTagList() { this.view = 'tagList'; },
         goPrintFormatList() { this.view = 'printFormatList'; },
         goHeaderLabelList() { this.view = 'headerLabelList'; },
@@ -1131,8 +1408,12 @@ function app() {
             const opts = this.subBrandOptionsFor(this.brandForm.brandType);
             this.brandForm.subBrandType = opts[0];
             this.brandForm.code = this.generateBrandCode(this.brandForm.subBrandType);
+            if (!this.isCoBrandOrOem(this.brandForm.subBrandType)) this.brandForm.customerCodes = [];
         },
-        onSubBrandChange() { this.brandForm.code = this.generateBrandCode(this.brandForm.subBrandType); },
+        onSubBrandChange() {
+            this.brandForm.code = this.generateBrandCode(this.brandForm.subBrandType);
+            if (!this.isCoBrandOrOem(this.brandForm.subBrandType)) this.brandForm.customerCodes = [];
+        },
         onTagBrandChange() { this.tagForm.tagName = this.tagOptionsFor(this.tagForm.brand)[0] || ''; },
         onUsageBrandChange() { this.usageForm.tag = this.tagOptionsFor(this.usageForm.brand)[0] || ''; },
 
@@ -1144,10 +1425,42 @@ function app() {
             this.headerForm.captions.push({ caption: '', fix: false, field: '', unit: '', font: 'Arial-Regular-14pt', print: true });
         },
 
+        isCoBrandOrOem(subBrandType) { return subBrandType === 'CO-Brand' || subBrandType === 'OEM'; },
+        customerLabel(code) {
+            const c = this.customerMaster.find(x => x.code === code);
+            return c ? (c.code + ' : ' + c.fullName) : code;
+        },
+        toggleBrandCustomer(code) {
+            if (!code) return;
+            const list = this.brandForm.customerCodes;
+            this.brandForm.customerCodes = list.includes(code) ? list.filter(c => c !== code) : [...list, code];
+        },
+        deleteBrand(rec) {
+            if (confirm('ยืนยันการลบ Brand "' + rec.code + '" ? (ย้ายไปแท็บ "ที่ถูกลบ" สามารถกู้คืนได้)')) {
+                rec.deleted = true;
+                this.showToast('ลบ Brand เรียบร้อยแล้ว — กู้คืนได้จากแท็บ "ที่ถูกลบ"');
+            }
+        },
+        restoreBrand(rec) {
+            rec.deleted = false;
+            this.showToast('กู้คืน Brand ' + rec.code + ' เรียบร้อยแล้ว');
+        },
         saveBrand() {
             const f = this.brandForm;
+            if (!f.nameTh || !f.nameEn) { this.showToast('กรุณากรอกรายละเอียด Brand ทั้งภาษาไทยและอังกฤษ'); return; }
+            if (this.isCoBrandOrOem(f.subBrandType) && f.customerCodes.length === 0) {
+                this.showToast('กลุ่ม CO-Brand / OEM ต้องเลือกรหัสลูกค้าอย่างน้อย 1 รายการ');
+                return;
+            }
             const newId = this.brands.length ? Math.max(...this.brands.map(r => r.id)) + 1 : 1;
-            this.brands.push({ id: newId, brandType: f.brandType, subBrandType: f.subBrandType, code: f.code, nameTh: f.nameTh, nameEn: f.nameEn, effectiveDate: f.effectiveDate, expireDate: f.expireDate, tags: [] });
+            const now = new Date();
+            const recordedAt = String(now.getDate()).padStart(2, '0') + '/' + String(now.getMonth() + 1).padStart(2, '0') + '/' + now.getFullYear() + ' ' + String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+            this.brands.push({
+                id: newId, brandType: f.brandType, subBrandType: f.subBrandType, code: f.code, nameTh: f.nameTh, nameEn: f.nameEn,
+                effectiveDate: f.effectiveDate, expireDate: f.expireDate, customerCodes: this.isCoBrandOrOem(f.subBrandType) ? [...f.customerCodes] : [],
+                recordedBy: 'ผู้ใช้งานปัจจุบัน (Demo)', recordedAt, deleted: false, tags: []
+            });
+            this.brandTab = 'active'; this.brandPage = 1;
             this.view = 'brandList';
             this.showToast('บันทึกข้อมูล Brand เรียบร้อยแล้ว (ยังไม่มีป้าย sync จากระบบจัดซื้อ)');
         },
