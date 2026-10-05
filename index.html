@@ -1099,13 +1099,13 @@ function makeTagForm() {
         saleType: 'ขายต่างประเทศ (Export Sales)', country: 'All (ทุกประเทศ)', customer: 'All (ทุกรหัสลูกค้า)',
         quality: 'P (Premium)', productGroup: 'All (ทุกกลุ่มประเภทสินค้า)', productType: 'All (ทั้งหมด)',
         trammelingType: 'All (ทั้งหมด)', twineSeries: 'All (ทั้งหมด)', twineOnLabel: '0.30 mm', earColorCode: 'YLM90',
-        brand: 'P1 : GOLDEN SHIP ON RED', tagName: '0ช : ป้ายเรือใบทองพื้นแดง', oldTagCode: '',
+        brand: 'P1 : GOLDEN SHIP', tagName: '0ช : ป้ายเรือใบทองพื้นแดง', oldTagCode: '',
         knot: 'DK (Double Knot)', ovenType: 'อบ YOKO', effectiveDate: '2026-09-18', expireDate: ''
     };
 }
 function makeUsageForm() {
     return {
-        mode: 'Specific', brand: 'P1 : GOLDEN SHIP ON RED', tag: '0ช : ป้ายเรือใบทองพื้นแดง',
+        mode: 'Specific', brand: 'P1 : GOLDEN SHIP', tag: '0ช : ป้ายเรือใบทองพื้นแดง',
         bag: 'ZF : ถุงใสพิมพ์โลโก้', tape: 'P5 : สติกเกอร์ เรือใบทองพื้นแดง', sack: '10 : กระสอบสีเหลืองไม่มีแถบ',
         strap: '01 : สีเหลือง LOGO เรือใบ', effectiveDate: '2026-09-18', expireDate: ''
     };
@@ -1165,7 +1165,7 @@ function app() {
         // ===== Master data =====
         brands: [
             { id: 1, brandType: 'KKF', subBrandType: 'Primary Brand', code: 'P1', nameTh: 'เรือใบทอง', nameEn: 'GOLDEN SHIP', effectiveDate: '2025-01-01', expireDate: '', recordedBy: 'Migrate', recordedAt: '31/07/2021 00:00', deleted: false, customerCodes: [], tags: ['0ช : ป้ายเรือใบทองพื้นแดง', '0ด : ป้ายเรือใบทองพื้นน้ำเงิน'] },
-            { id: 2, brandType: 'KKF', subBrandType: 'Secondary Brand', code: 'S1', nameTh: 'สิงโตทะเล', nameEn: 'SEALION', effectiveDate: '2025-01-01', expireDate: '2025-12-31', recordedBy: 'Migrate', recordedAt: '31/07/2021 00:00', deleted: false, customerCodes: [], tags: ['0ด : ป้ายดาวทะเลพื้นน้ำเงิน'] },
+            { id: 2, brandType: 'KKF', subBrandType: 'Secondary Brand', code: 'S1', nameTh: 'สิงโตทะเล', nameEn: 'SEALION', effectiveDate: '2025-01-01', expireDate: '', recordedBy: 'Migrate', recordedAt: '31/07/2021 00:00', deleted: false, customerCodes: [], tags: ['0ด : ป้ายดาวทะเลพื้นน้ำเงิน'] },
             { id: 3, brandType: 'Customer', subBrandType: 'CO-Brand', code: 'C1', nameTh: 'เบส แคท', nameEn: 'BEST CATCH', effectiveDate: '2025-01-01', expireDate: '', recordedBy: 'Migrate', recordedAt: '19/08/2021 13:31', deleted: false, customerCodes: ['FI01', 'FI02'], tags: ['0ค : ป้ายคลื่นฟ้าพื้นขาว'] }
         ],
         // ตัวอย่างฐานข้อมูลรหัสลูกค้า (Customer Master) ใช้ผูกกับ Brand ประเภท CO-Brand / OEM
@@ -1203,13 +1203,11 @@ function app() {
         headerForm: makeHeaderForm(),
 
         tagStandards: [
-            { id: 1, brand: 'P1 : GOLDEN SHIP ON RED', tagName: '0ช : ป้ายเรือใบทองพื้นแดง', saleType: 'ขายต่างประเทศ (Export Sales)', country: 'All (ทุกประเทศ)', customer: 'All (ทุกรหัสลูกค้า)', quality: 'P (Premium)', productType: 'M : MONO NET', effectiveDate: '2026-06-24', expireDate: '2030-01-01' },
-            { id: 2, brand: 'S1 : MYANMAR OCEAN STAR', tagName: '0ด : ป้ายดาวทะเลพื้นน้ำเงิน', saleType: 'ขายในประเทศ (Domestic Sales)', country: 'Thailand', customer: 'C002', quality: 'S (Standard)', productType: 'N : MULTI FILAMENT NET', effectiveDate: '2025-01-01', expireDate: '2025-12-31' }
+            { id: 1, brand: 'P1 : GOLDEN SHIP', tagName: '0ช : ป้ายเรือใบทองพื้นแดง', saleType: 'ขายต่างประเทศ (Export Sales)', country: 'All (ทุกประเทศ)', customer: 'All (ทุกรหัสลูกค้า)', quality: 'P (Premium)', productType: 'M : MONO NET', effectiveDate: '2026-06-24', expireDate: '2030-01-01' },
         ],
         usageRecords: [
-            { id: 1, brand: 'P1 : GOLDEN SHIP ON RED', tag: '0ช : ป้ายเรือใบทองพื้นแดง', mode: 'Specific', customerLabel: 'All (ทั้งหมด)', productLabel: 'M : MONO NET', bag: 'ZF : ถุงใสพิมพ์โลโก้', sack: '10 : กระสอบสีเหลืองไม่มีแถบ', stickerLabel: '(S1-สติ๊กเกอร์ระวังเกี่ยวขาด)', effectiveDate: '2026-06-24', expireDate: '2030-01-01' },
-            { id: 2, brand: 'S1 : MYANMAR OCEAN STAR', tag: '0ด : ป้ายดาวทะเลพื้นน้ำเงิน', mode: 'General', customerLabel: 'C002', productLabel: 'N : MULTI FILAMENT NET', zoneLabel: 'Zone B (อาเซียน)', countryLabel: 'Myanmar', bag: 'ZG : ถุงทึบพิมพ์โลโก้', sack: '11 : กระสอบสีขาวมีแถบฟ้า', stickerLabel: 'ไม่ติดสติ๊กเกอร์', effectiveDate: '2025-01-01', expireDate: '2025-12-31' },
-            { id: 3, brand: 'C1 : VIETNAM BLUE WAVE', tag: '0ค : ป้ายคลื่นฟ้าพื้นขาว', mode: 'Specific', customerLabel: 'C001, C003', productLabel: 'X : MONO LINE', bag: 'ZF : ถุงใสพิมพ์โลโก้', sack: '10 : กระสอบสีเหลืองไม่มีแถบ', stickerLabel: 'ไม่ติดสติ๊กเกอร์', effectiveDate: '2026-01-01', expireDate: '' }
+            { id: 1, brand: 'P1 : GOLDEN SHIP', tag: '0ช : ป้ายเรือใบทองพื้นแดง', mode: 'Specific', customerLabel: 'All (ทั้งหมด)', productLabel: 'M : MONO NET', bag: 'ZF : ถุงใสพิมพ์โลโก้', sack: '10 : กระสอบสีเหลืองไม่มีแถบ', stickerLabel: '(S1-สติ๊กเกอร์ระวังเกี่ยวขาด)', effectiveDate: '2026-06-24', expireDate: '2030-01-01' },
+
         ],
         printFormats: [
             { id: 1, code: '01', nameTh: 'ประเภทที่ 1 ขายต่าง ทุกโซน', nameEn: 'International Sales - All Regions', remark: 'สินค้ากลุ่ม ต่างประเทศ', effectiveDate: '2026-06-19', expireDate: '2030-01-01', fields: makePrintFormatForm().fields }
