@@ -71,7 +71,7 @@
             <div class="block menu-item text-xs" :class="(view === 'tagSync' || view === 'tagRequestForm') ? 'menu-current' : ''" @click="goTagSync()">1.2 ข้อมูลป้ายสินค้า</div>
             <div class="block menu-item text-xs" :class="(view === 'tagList' || view === 'tagForm') ? 'menu-current' : ''" @click="goTagList()">1.3 มตฐ.เงื่อนไขการใช้ป้ายสินค้า</div>
             <div class="block menu-item text-xs" :class="view.startsWith('printFormat') ? 'menu-current' : ''" @click="goPrintFormatList()">1.4 รูปแบบการพิมพ์ข้อมูลในป้าย</div>
-            <div class="block menu-item text-xs" @click="stub()">1.5 Set รูปแบบการพิมพ์ป้ายสินค้า</div>
+            <div class="block menu-item text-xs" :class="view.startsWith('printMap') ? 'menu-current' : ''" @click="goPrintMapList()">1.5 Set รูปแบบการพิมพ์ป้ายสินค้า</div>
         </div>
 
         <div class="menu-item" @click="stub('ข้อมูลรหัสวัสดุนี้ sync มาจากระบบจัดซื้อผ่าน API')">2 ถุงบรรจุสินค้า</div>
@@ -81,7 +81,11 @@
         <div class="menu-item" @click="stub()">6 ลวด/เทป มัดปากถุง</div>
         <div class="menu-item" @click="stub()">7 ผ้าใบและแถบสี</div>
         <div class="menu-item" @click="stub('ข้อมูลรหัสวัสดุนี้ sync มาจากระบบจัดซื้อผ่าน API')">8 สายรัดกระสอบ</div>
-        <div class="menu-item" :class="view.startsWith('headerLabel') ? 'menu-current' : ''" @click="goHeaderLabelList()">9 รูปแบบการพิมพ์ป้ายหัวห่อ</div>
+        <div class="menu-item" @click="sidebarOpen.headerLabel = !sidebarOpen.headerLabel">9 รูปแบบการพิมพ์ป้ายหัวห่อ</div>
+        <div class="pl-4" x-show="sidebarOpen.headerLabel" x-cloak>
+            <div class="block menu-item text-xs" :class="view.startsWith('headerLabel') ? 'menu-current' : ''" @click="goHeaderLabelList()">9.1 ข้อมูลรูปแบบการพิมพ์ป้ายหัวห่อ</div>
+            <div class="block menu-item text-xs" @click="stub()">9.2 มตฐ.เงื่อนไขในการนำไปใช้</div>
+        </div>
 
         <div class="menu-item" @click="sidebarOpen.packagingUsage = !sidebarOpen.packagingUsage">
             10 มาตรฐานการนำบรรจุภัณฑ์ไปใช้งาน
@@ -700,41 +704,211 @@
         </div>
     </template>
 
+    <!-- ============ 1.5 LIST: Set รูปแบบการพิมพ์ป้ายสินค้า (ผูกรูปแบบการพิมพ์กับป้ายสินค้า) ============ -->
+    <template x-if="view === 'printMapList'">
+        <div>
+            <div class="page-wrap">
+                <div class="page-title">
+                    <span>Set รูปแบบการพิมพ์ป้ายสินค้า</span>
+                    <button @click="openNewPrintMapForm()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-4 py-2 rounded-lg">+ เพิ่มคู่ข้อมูล</button>
+                </div>
+            </div>
+            <div class="page-wrap">
+                <div class="flow-banner">▸ ผูก <b>รูปแบบการพิมพ์ป้ายสินค้า</b> (จากเมนู 1.4) เข้ากับ <b>ป้ายสินค้า</b> (จากเมนู 1.2/1.3) ภายใต้เงื่อนไขประเภทการขาย/รหัสลูกค้า/ประเภทสินค้า — เว้นว่าง = All (ครอบคลุมทุกค่า)</div>
+                <div class="bg-white rounded-lg shadow-sm p-4">
+                    <div class="flex justify-between items-center mb-3">
+                        <input type="text" x-model="printMapSearch" placeholder="ค้นหา ประเภทการขาย / รูปแบบ / รหัสป้าย..." class="input-box max-w-xs">
+                        <span class="text-xs text-gray-500" x-text="`ทั้งหมด ${filteredPrintMaps.length} รายการ`"></span>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>ประเภทการขาย</th><th>รูปแบบการพิมพ์</th><th>รหัสลูกค้า</th><th>ประเภทสินค้า</th>
+                                    <th>รหัสป้าย</th><th>รหัสป้ายเก่า</th><th>ประกาศใช้ - หมดอายุ</th><th>สถานะ</th><th class="text-right">การจัดการ</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <template x-for="rec in filteredPrintMaps" :key="rec.id">
+                                    <tr>
+                                        <td x-text="rec.saleType"></td>
+                                        <td class="font-semibold" x-text="printFormatLabelById(rec.printFormatId)"></td>
+                                        <td x-text="rec.customer"></td>
+                                        <td x-text="rec.productType"></td>
+                                        <td x-text="rec.tagCode"></td>
+                                        <td x-text="rec.oldTagCode || '(ว่าง)'"></td>
+                                        <td class="text-xs" x-text="rec.effectiveDate + ' → ' + (rec.expireDate || 'ไม่มีกำหนด')"></td>
+                                        <td><span :class="isActive(rec) ? 'badge-active' : 'badge-expired'" x-text="isActive(rec) ? 'ใช้งานอยู่' : 'หมดอายุ'"></span></td>
+                                        <td class="text-right whitespace-nowrap">
+                                            <button @click="viewDetail(rec, 'printMap')" class="icon-btn bg-slate-100 text-slate-700 hover:bg-slate-200">ดูรายละเอียด</button>
+                                            <button @click="deleteRecord('printMaps', rec)" class="icon-btn bg-red-50 text-red-600 hover:bg-red-100">ลบ</button>
+                                        </td>
+                                    </tr>
+                                </template>
+                                <tr x-show="filteredPrintMaps.length === 0"><td colspan="9" class="text-center text-gray-400 py-8 text-sm">ไม่พบข้อมูลที่ค้นหา</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- ============ 1.5 FORM: Mapping Window ============ -->
+    <template x-if="view === 'printMapForm'">
+        <div class="page-wrap">
+            <div class="modal-container">
+                <div class="header-bg"><span>เพิ่มข้อมูล รายละเอียดการพิมพ์ป้าย (Mapping Window)</span><button @click="goPrintMapList()" class="text-white/90 hover:text-white">✕</button></div>
+                <div class="p-6 grid grid-cols-2 gap-8">
+                    <div class="space-y-4">
+                        <div><label class="label-text">ประเภทการขาย *</label>
+                            <select class="input-box" x-model="printMapForm.saleType">
+                                <option>ขายในประเทศ (Domestic Sales)</option>
+                                <option>ขายต่างประเทศ (Export Sales)</option>
+                            </select>
+                        </div>
+                        <div><label class="label-text">รูปแบบการพิมพ์ป้ายสินค้า * <span class="local-note">จาก 1.4</span></label>
+                            <select class="input-box" x-model.number="printMapForm.printFormatId">
+                                <template x-for="pf in printFormats" :key="pf.id"><option :value="pf.id" x-text="printFormatLabel(pf)"></option></template>
+                            </select>
+                        </div>
+                        <div><label class="label-text">รหัสลูกค้า</label>
+                            <select class="input-box" x-model="printMapForm.customer">
+                                <option>All (ทั้งหมด)</option><option>C001</option><option>C002</option><option>C003</option>
+                            </select>
+                            <p class="text-[11px] text-gray-400 mt-1">* เว้นว่าง/All หมายถึงทั้งหมดทุกรหัสลูกค้าในประเภทการขายนี้</p>
+                        </div>
+                        <div><label class="label-text">ประเภทสินค้า</label>
+                            <select class="input-box" x-model="printMapForm.productType">
+                                <option>All (ทั้งหมด)</option>
+                                <template x-for="t in productTypes" :key="t"><option x-text="t"></option></template>
+                            </select>
+                            <p class="text-[11px] text-gray-400 mt-1">* เว้นว่าง/All คือครอบคลุมทุกประเภทสินค้าในตระกูลนี้</p>
+                        </div>
+                        <div><label class="label-text">รหัสป้าย * <span class="api-note">รหัส/ข้อมูลจาก 1.2 ที่ sync จากระบบจัดซื้อ</span></label>
+                            <select class="input-box" x-model="printMapForm.tagCode">
+                                <template x-for="t in allTagCodesForMap" :key="t"><option x-text="t"></option></template>
+                            </select>
+                        </div>
+                        <div><label class="label-text">รหัสป้ายเก่า</label><input class="input-box" x-model="printMapForm.oldTagCode" placeholder="(ว่าง)"></div>
+                        <p class="text-[11px] text-gray-400 -mt-2">* แสดงผล 2 หลักหากมีรหัสเก่าอ้างอิงตรงป้าย</p>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div><label class="label-text">วันที่ประกาศใช้</label><input type="date" class="input-box" x-model="printMapForm.effectiveDate"></div>
+                            <div><label class="label-text">วันที่หมดอายุ</label><input type="date" class="input-box" x-model="printMapForm.expireDate"></div>
+                        </div>
+                    </div>
+
+                    <div class="border rounded-lg p-4 bg-gray-50">
+                        <div class="font-bold text-xs flex items-center gap-2 text-gray-700 mb-3">🔍 รูปตัวอย่างรูปแบบพิมพ์ <span class="text-gray-400 font-normal" x-text="selectedPrintFormatForMap ? printFormatLabel(selectedPrintFormatForMap) : ''"></span></div>
+                        <div class="border-2 border-gray-300 rounded-lg bg-white p-4 mx-auto" style="max-width:260px;">
+                            <template x-for="f in mapPreviewFields" :key="f.key">
+                                <div class="flex justify-between text-xs py-1 border-b border-dashed">
+                                    <span class="font-bold text-gray-600" x-text="f.en"></span>
+                                    <span class="font-mono" x-text="printFieldSampleValues[f.key] || '-'"></span>
+                                </div>
+                            </template>
+                            <p class="text-[11px] text-gray-400 mt-3" x-show="mapPreviewFields.length === 0">ยังไม่มีหัวข้อที่ตั้งค่าแสดงผลในรูปแบบนี้</p>
+                            <div class="text-center mt-3 text-[10px] text-gray-400 tracking-widest">▌▌▐▐▌ ▌▐▌▌▐ ▌▌▐▐▌</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="p-4 border-t flex justify-end gap-2 bg-gray-50">
+                    <button @click="goPrintMapList()" class="px-6 py-2 border rounded text-sm">ยกเลิก</button>
+                    <button @click="savePrintMap()" class="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded text-sm font-bold">✔ บันทึกคู่ข้อมูล</button>
+                </div>
+            </div>
+        </div>
+    </template>
+
     <!-- ============ 9 LIST: รูปแบบการพิมพ์ป้ายหัวห่อ ============ -->
     <template x-if="view === 'headerLabelList'">
         <div>
             <div class="page-wrap">
                 <div class="page-title">
-                    <span>รูปแบบการพิมพ์ป้ายหัวห่อ</span>
-                    <button @click="openNewHeaderLabelForm()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-4 py-2 rounded-lg">+ เพิ่มรูปแบบใหม่</button>
+                    <span>การบันทึก/แก้ไข รูปแบบการพิมพ์ป้ายหัวห่อ</span>
                 </div>
             </div>
             <div class="page-wrap">
                 <div class="bg-white rounded-lg shadow-sm p-4">
-                    <div class="flex justify-between items-center mb-3">
-                        <input type="text" x-model="headerLabelSearch" placeholder="ค้นหารหัส / รายละเอียด..." class="input-box max-w-xs">
-                        <span class="text-xs text-gray-500" x-text="`ทั้งหมด ${filteredHeaderLabels.length} รายการ`"></span>
+                    <div x-show="headerFilterOpen" x-cloak class="grid grid-cols-3 gap-3 mb-3">
+                        <div><label class="label-text">รหัสรูปแบบ</label><input type="text" x-model="headerCodeSearch" class="input-box"></div>
+                        <div><label class="label-text">รายละเอียด</label><input type="text" x-model="headerDescSearch" class="input-box"></div>
+                        <div class="flex items-end"><button type="button" class="bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold px-5 py-2 rounded-lg">🔍 ค้นหา</button></div>
                     </div>
+
+                    <div class="flex flex-wrap items-center gap-2 mb-4">
+                        <button type="button" @click="openNewHeaderLabelForm()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-2 rounded-lg">+ เพิ่ม</button>
+                        <button type="button" @click="editHeaderLabel()" :disabled="!selectedHeaderRec" class="bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold px-4 py-2 rounded-lg disabled:opacity-40">✎ แก้ไข</button>
+                        <button type="button" @click="selectedHeaderRec && viewDetail(selectedHeaderRec, 'headerLabel')" :disabled="!selectedHeaderRec" class="bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold px-4 py-2 rounded-lg disabled:opacity-40">◎ ดูรายละเอียด</button>
+                        <button type="button" @click="deleteHeaderLabel()" :disabled="!selectedHeaderRec || headerTab === 'deleted'" class="bg-red-500 hover:bg-red-600 text-white text-xs font-bold px-4 py-2 rounded-lg disabled:opacity-40">🗑 ลบ</button>
+                        <button type="button" @click="headerFilterOpen = !headerFilterOpen" class="bg-gray-300 hover:bg-gray-400 text-gray-800 text-xs font-bold px-4 py-2 rounded-lg" x-text="headerFilterOpen ? 'ซ่อนเงื่อนไข' : 'แสดงเงื่อนไข'"></button>
+                    </div>
+
+                    <div class="flex gap-1 border-b mb-4">
+                        <button type="button" @click="headerTab = 'active'; headerPage = 1; selectedHeaderId = null" class="px-4 py-2 text-xs font-bold border-b-2 -mb-px" :class="headerTab === 'active' ? 'border-indigo-600 text-indigo-700' : 'border-transparent text-gray-500 hover:text-gray-700'">ข้อมูลรูปแบบการพิมพ์ป้ายหัวห่อ Active</button>
+                        <button type="button" @click="headerTab = 'inactive'; headerPage = 1; selectedHeaderId = null" class="px-4 py-2 text-xs font-bold border-b-2 -mb-px" :class="headerTab === 'inactive' ? 'border-indigo-600 text-indigo-700' : 'border-transparent text-gray-500 hover:text-gray-700'">ข้อมูลรูปแบบการพิมพ์ป้ายหัวห่อ ที่หมดอายุ Inactive</button>
+                        <button type="button" @click="headerTab = 'deleted'; headerPage = 1; selectedHeaderId = null" class="px-4 py-2 text-xs font-bold border-b-2 -mb-px" :class="headerTab === 'deleted' ? 'border-indigo-600 text-indigo-700' : 'border-transparent text-gray-500 hover:text-gray-700'">ข้อมูลรูปแบบการพิมพ์ป้ายหัวห่อ ที่ถูกลบ</button>
+                        <div class="flex-1 flex items-center justify-end pr-1">
+                            <div class="relative" x-data="{ open: false }" @click.outside="open = false">
+                                <button type="button" @click="open = !open" class="icon-btn bg-slate-100 text-slate-700 hover:bg-slate-200 text-sm font-bold px-2">⋮</button>
+                                <div class="dropdown-menu" x-show="open" x-cloak @click="open = false">
+                                    <div class="dropdown-item" @click="exportHeaderLabels()">📊 Export Excel File</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="overflow-x-auto">
                         <table class="data-table">
-                            <thead><tr><th>รหัสรูปแบบ</th><th>รายละเอียด</th><th>จำนวน Caption</th><th>ประกาศใช้ - หมดอายุ</th><th>สถานะ</th><th class="text-right">การจัดการ</th></tr></thead>
+                            <thead>
+                                <tr>
+                                    <th class="w-8"></th>
+                                    <th>รหัสรูปแบบ</th>
+                                    <th>รายละเอียด</th>
+                                    <th class="text-center">รูปภาพ</th>
+                                    <th>วันที่เริ่มใช้</th>
+                                    <th>วันที่สิ้นสุด</th>
+                                    <th>รหัสพนักงาน</th>
+                                    <th>ชื่อพนักงาน</th>
+                                    <th>วันที่บันทึก</th>
+                                </tr>
+                            </thead>
                             <tbody>
-                                <template x-for="rec in filteredHeaderLabels" :key="rec.id">
-                                    <tr>
+                                <template x-for="rec in paginatedHeaderLabels" :key="rec.id">
+                                    <tr class="cursor-pointer" :class="selectedHeaderId === rec.id ? 'bg-amber-50' : ''" @click="selectHeaderRow(rec)">
+                                        <td class="text-center"><input type="checkbox" :checked="selectedHeaderId === rec.id" @click.stop="selectHeaderRow(rec)"></td>
                                         <td class="font-semibold" x-text="rec.code"></td>
                                         <td x-text="rec.desc"></td>
-                                        <td x-text="rec.captions.length"></td>
-                                        <td class="text-xs" x-text="rec.effectiveDate + ' → ' + (rec.expireDate || 'ไม่มีกำหนด')"></td>
-                                        <td><span :class="isActive(rec) ? 'badge-active' : 'badge-expired'" x-text="isActive(rec) ? 'ใช้งานอยู่' : 'หมดอายุ'"></span></td>
-                                        <td class="text-right whitespace-nowrap">
-                                            <button @click="viewDetail(rec, 'headerLabel')" class="icon-btn bg-slate-100 text-slate-700 hover:bg-slate-200">ดูรายละเอียด</button>
-                                            <button @click="deleteRecord('headerLabels', rec)" class="icon-btn bg-red-50 text-red-600 hover:bg-red-100">ลบ</button>
-                                        </td>
+                                        <td class="text-center"><input type="checkbox" disabled :checked="rec.hasImageInList"></td>
+                                        <td class="text-xs" x-text="fmtDate(rec.effectiveDate)"></td>
+                                        <td class="text-xs" x-text="rec.expireDate ? fmtDate(rec.expireDate) : 'ไม่มีกำหนด'"></td>
+                                        <td class="text-xs" x-text="rec.empCode"></td>
+                                        <td class="text-xs" x-text="rec.recordedBy"></td>
+                                        <td class="text-xs" x-text="fmtDate(rec.recordedAt)"></td>
                                     </tr>
                                 </template>
-                                <tr x-show="filteredHeaderLabels.length === 0"><td colspan="6" class="text-center text-gray-400 py-8 text-sm">ไม่พบข้อมูลที่ค้นหา</td></tr>
+                                <tr x-show="paginatedHeaderLabels.length === 0"><td colspan="9" class="text-center text-gray-400 py-8 text-sm">ไม่พบข้อมูลที่ค้นหา</td></tr>
                             </tbody>
                         </table>
+                    </div>
+                    <div class="flex justify-between items-center mt-3 text-xs text-gray-500">
+                        <div class="flex items-center gap-2">
+                            <span>Show :</span>
+                            <select class="input-box w-16" x-model.number="headerPageSize" @change="headerPage = 1">
+                                <option :value="5">5</option><option :value="10">10</option><option :value="25">25</option>
+                            </select>
+                            <span x-text="'/ ' + filteredHeaderLabels.length + ' entries'"></span>
+                        </div>
+                        <div class="flex items-center gap-1">
+                            <button type="button" @click="headerPage = 1" :disabled="headerPage <= 1" class="icon-btn bg-slate-100 disabled:opacity-40">⏮ First</button>
+                            <button type="button" @click="headerPage = Math.max(1, headerPage - 1)" :disabled="headerPage <= 1" class="icon-btn bg-slate-100 disabled:opacity-40">◀ Previous</button>
+                            <span class="px-2 font-bold" x-text="headerPage"></span>
+                            <button type="button" @click="headerPage = Math.min(headerTotalPages, headerPage + 1)" :disabled="headerPage >= headerTotalPages" class="icon-btn bg-slate-100 disabled:opacity-40">Next ▶</button>
+                            <button type="button" @click="headerPage = headerTotalPages" :disabled="headerPage >= headerTotalPages" class="icon-btn bg-slate-100 disabled:opacity-40">Last ⏭</button>
+                        </div>
+                    </div>
+                    <div x-show="headerTab === 'deleted' && selectedHeaderRec" x-cloak class="mt-3">
+                        <button type="button" @click="restoreHeaderLabel()" class="bg-emerald-50 text-emerald-600 hover:bg-emerald-100 text-xs font-bold px-4 py-2 rounded-lg">กู้คืนรายการที่เลือก</button>
                     </div>
                 </div>
             </div>
@@ -1110,6 +1284,18 @@
                     </div>
                 </div>
             </template>
+            <template x-if="detailType === 'printMap'">
+                <div class="space-y-2">
+                    <div class="flex justify-between border-b pb-2"><span class="text-gray-500">ประเภทการขาย</span><span class="font-semibold" x-text="detail?.saleType"></span></div>
+                    <div class="flex justify-between border-b pb-2"><span class="text-gray-500">รูปแบบการพิมพ์</span><span x-text="printFormatLabelById(detail?.printFormatId)"></span></div>
+                    <div class="flex justify-between border-b pb-2"><span class="text-gray-500">รหัสลูกค้า</span><span x-text="detail?.customer"></span></div>
+                    <div class="flex justify-between border-b pb-2"><span class="text-gray-500">ประเภทสินค้า</span><span x-text="detail?.productType"></span></div>
+                    <div class="flex justify-between border-b pb-2"><span class="text-gray-500">รหัสป้าย</span><span x-text="detail?.tagCode"></span></div>
+                    <div class="flex justify-between border-b pb-2"><span class="text-gray-500">รหัสป้ายเก่า</span><span x-text="detail?.oldTagCode || '(ว่าง)'"></span></div>
+                    <div class="flex justify-between border-b pb-2"><span class="text-gray-500">วันที่ประกาศใช้</span><span x-text="detail?.effectiveDate"></span></div>
+                    <div class="flex justify-between pb-2"><span class="text-gray-500">วันที่หมดอายุ</span><span x-text="detail?.expireDate || 'ไม่มีกำหนด'"></span></div>
+                </div>
+            </template>
             <template x-if="detailType === 'headerLabel'">
                 <div class="space-y-2">
                     <div class="flex justify-between border-b pb-2"><span class="text-gray-500">รหัสรูปแบบ</span><span class="font-semibold" x-text="detail?.code"></span></div>
@@ -1166,6 +1352,8 @@ const PRINT_FIELD_DEFS = [
 ];
 const PRINT_FIELD_DEFAULT_SHOW = { twine:true, mesh:true, depth:true, length:true, color:true, type:true, weight:false, ref:true, detail:false, model:false };
 const PRINT_FIELD_DEFAULT_ORDER = { twine:1, mesh:2, depth:3, length:4, color:5, type:6, ref:7 };
+// ค่าตัวอย่างสำหรับพรีวิวป้าย (mock) — อ้างอิงตามตัวอย่างป้ายในเอกสารอ้างอิง
+const PRINT_FIELD_SAMPLE_VALUES = { twine: '0.30 mm', mesh: '2.1/2"', depth: '8 #', length: '300 ม YOKO', color: 'WTM01', type: 'YOKO', weight: '1.20 kg', ref: '22/800-0F', detail: '-', model: '-' };
 
 const FIELD_GROUPS = [
     { id: '01', label: '01 เลขที่ ORDER', fields: ['ORDER NO'] },
@@ -1222,6 +1410,14 @@ function makeHeaderForm() {
         ]
     };
 }
+// 1.5 — ผูกรูปแบบการพิมพ์ป้ายสินค้า (จาก 1.4) เข้ากับป้ายสินค้า (จาก 1.2/1.3) ภายใต้เงื่อนไขการขาย
+function makePrintMapForm() {
+    return {
+        saleType: 'ขายต่างประเทศ (Export Sales)', printFormatId: null,
+        customer: 'All (ทั้งหมด)', productType: 'All (ทั้งหมด)', tagCode: 'All (ทั้งหมด)', oldTagCode: '',
+        effectiveDate: '2026-09-18', expireDate: ''
+    };
+}
 
 function app() {
     return {
@@ -1233,7 +1429,7 @@ function app() {
         detail: null,
         detailType: 'usage',
 
-        sidebarOpen: { packaging2: true, packaging: true, packagingUsage: true },
+        sidebarOpen: { packaging2: true, packaging: true, packagingUsage: true, headerLabel: true },
 
         // ===== ขอรหัสป้ายใหม่ (10 หลัก) =====
         requestStatus: 'draft',
@@ -1309,16 +1505,20 @@ function app() {
         zones: ['Zone A (ในประเทศ)', 'Zone B (อาเซียน)', 'Zone C (ยุโรป/อเมริกา)', 'Zone D (อื่นๆ)'],
         countries: ['Thailand', 'Myanmar', 'Vietnam', 'Cambodia', 'Laos', 'China'],
         fieldGroups: FIELD_GROUPS,
+        printFieldSampleValues: PRINT_FIELD_SAMPLE_VALUES,
         selectedGroupId: '02',
 
         selectedCustomers: [], selectedProducts: [], selectedTwineSeries: [], selectedTrammelingTypes: [], selectedStickers: [],
         selectedGeneralZones: [], selectedGeneralCountries: [], selectedGeneralCustomers: [], selectedGeneralProducts: [],
 
-        brandSearch: '', tagSearch: '', usageSearch: '', printFormatSearch: '', headerLabelSearch: '',
+        brandSearch: '', tagSearch: '', usageSearch: '', printFormatSearch: '', printMapSearch: '',
+        headerCodeSearch: '', headerDescSearch: '', headerFilterOpen: true,
+        headerTab: 'active', headerPage: 1, headerPageSize: 10, selectedHeaderId: null, editingHeaderId: null,
         brandForm: makeBrandForm(),
         tagForm: makeTagForm(),
         usageForm: makeUsageForm(),
         printFormatForm: makePrintFormatForm(),
+        printMapForm: makePrintMapForm(),
         headerForm: makeHeaderForm(),
 
         tagStandards: [
@@ -1333,8 +1533,24 @@ function app() {
         printFormats: [
             { id: 1, code: '01', nameTh: 'ประเภทที่ 1 ขายต่าง ทุกโซน', nameEn: 'International Sales - All Regions', remark: 'สินค้ากลุ่ม ต่างประเทศ', effectiveDate: '2026-06-19', expireDate: '2030-01-01', fields: makePrintFormatForm().fields }
         ],
+        // 1.5 — ตัวอย่างการผูกรูปแบบการพิมพ์ (1.4) เข้ากับป้ายสินค้า (1.2/1.3) ภายใต้เงื่อนไขการขาย
+        printMaps: [
+            { id: 1, saleType: 'ขายต่างประเทศ (Export Sales)', printFormatId: 1, customer: 'All (ทั้งหมด)', productType: 'All (ทั้งหมด)', tagCode: 'All (ทั้งหมด)', oldTagCode: '', effectiveDate: '2026-06-19', expireDate: '2030-01-01', deleted: false }
+        ],
+        // ตัวอย่างข้อมูลอ้างอิงจากระบบจริง (เมนู 9.1 ข้อมูลรูปแบบการพิมพ์ป้ายหัวห่อ)
         headerLabels: [
-            { id: 1, code: 'LBL-BIRDNET-01', desc: 'ป้ายหัวห่อ BIRD NET มาตรฐาน', effectiveDate: '2026-09-18', expireDate: '', captions: makeHeaderForm().captions }
+            { id: 1, code: '01', desc: 'พิมพ์ป้ายหัวห่อ + ป้ายรายการ อย่างละ 1 แผ่น', hasImageInList: false, effectiveDate: '2021-04-01', expireDate: '', empCode: '6500867', recordedBy: 'น.ส.อัจฉรา กล้ายุทธ', recordedAt: '2026-09-08', deleted: false, captions: makeHeaderForm().captions },
+            { id: 2, code: '02', desc: 'พิมพ์ป้ายหัวห่อ 2 แผ่น และพิมพ์ป้าย Barcode ลูกค้า 1 แผ่น', hasImageInList: false, effectiveDate: '2021-04-01', expireDate: '', empCode: '6500867', recordedBy: 'น.ส.อัจฉรา กล้ายุทธ', recordedAt: '2026-09-29', deleted: false, captions: makeHeaderForm().captions },
+            { id: 3, code: '04', desc: 'พิมพ์ป้ายหัวห่อ+ป้ายรายการ (Logo เรือใบ+การันตี ภาษาโปรตุเกส)', hasImageInList: true, effectiveDate: '2021-04-01', expireDate: '', empCode: '5501525', recordedBy: 'นายสยมภู ศรีชาติ', recordedAt: '2025-05-27', deleted: false, captions: makeHeaderForm().captions },
+            { id: 4, code: '05', desc: 'พิมพ์ป้ายหัวห่อ 1 แผ่น + ป้ายรายการ 2 แผ่น', hasImageInList: false, effectiveDate: '2021-04-01', expireDate: '', empCode: '5902636', recordedBy: 'นายวุฒิชัย ติดคุณบริรักษ์', recordedAt: '2021-03-17', deleted: false, captions: makeHeaderForm().captions },
+            { id: 5, code: '06', desc: 'พิมพ์ป้ายหัวห่อเรือใบ ลูกค้าพม่า', hasImageInList: true, effectiveDate: '2021-04-01', expireDate: '', empCode: '5902636', recordedBy: 'นายวุฒิชัย ติดคุณบริรักษ์', recordedAt: '2021-02-11', deleted: false, captions: makeHeaderForm().captions },
+            { id: 6, code: '08', desc: 'พิมพ์ป้ายหัวห่อ (ภาษาเวียดนาม) + ป้ายรายการอย่างละ 1 แผ่น', hasImageInList: false, effectiveDate: '2021-04-01', expireDate: '', empCode: '6500867', recordedBy: 'น.ส.อัจฉรา กล้ายุทธ', recordedAt: '2026-09-08', deleted: false, captions: makeHeaderForm().captions },
+            { id: 7, code: '07', desc: 'พิมพ์ป้ายสิงโตลูกค้าพม่า', hasImageInList: true, effectiveDate: '2021-03-17', expireDate: '', empCode: '5902636', recordedBy: 'นายวุฒิชัย ติดคุณบริรักษ์', recordedAt: '2021-03-17', deleted: false, captions: makeHeaderForm().captions },
+            { id: 8, code: '09', desc: 'พิมพ์ป้ายหัวห่อโดยมี Logo ลูกค้าในบรรทัดที่ 2 1 แผ่น + ป้ายรายการ 1 แผ่น', hasImageInList: true, effectiveDate: '2021-06-11', expireDate: '', empCode: '6500867', recordedBy: 'น.ส.อัจฉรา กล้ายุทธ', recordedAt: '2026-09-08', deleted: false, captions: makeHeaderForm().captions },
+            { id: 9, code: '10', desc: 'พิมพ์ป้ายหัวห่อ 1 แผ่น ขายในประเทศ 4x10 inch', hasImageInList: false, effectiveDate: '2021-06-14', expireDate: '', empCode: '5902636', recordedBy: 'นายวุฒิชัย ติดคุณบริรักษ์', recordedAt: '2021-06-14', deleted: false, captions: makeHeaderForm().captions },
+            { id: 10, code: '11', desc: 'พิมพ์ป้ายหัวห่อ 1 แผ่น ขายในประเทศ 4x2 inch', hasImageInList: false, effectiveDate: '2021-06-14', expireDate: '', empCode: '5902636', recordedBy: 'นายวุฒิชัย ติดคุณบริรักษ์', recordedAt: '2021-06-14', deleted: false, captions: makeHeaderForm().captions },
+            { id: 11, code: '14', desc: 'พิมพ์ป้ายหัวห่อ + ป้ายรายการ(มี Logo เรือใบและ Logo การันตีคุณภาพ)อย่างละ 1 แผ่น', hasImageInList: true, effectiveDate: '2022-02-17', expireDate: '2029-12-01', empCode: '5501525', recordedBy: 'นายสยมภู ศรีชาติ', recordedAt: '2025-05-27', deleted: false, captions: makeHeaderForm().captions },
+            { id: 12, code: '15', desc: 'พิมพ์ป้ายหัวห่อ + ป้ายรายการสินค้า (พร้อม barcode 13 หลัก) อย่างละ 1 แผ่น', hasImageInList: false, effectiveDate: '2023-03-07', expireDate: '', empCode: '5206204', recordedBy: 'นายวีศักดิ์ ทวีรุ่งศรีทรัพย์', recordedAt: '2023-03-07', deleted: false, captions: makeHeaderForm().captions }
         ],
 
         get brandOptionsForRequest() {
@@ -1421,10 +1637,50 @@ function app() {
             if (!q) return this.printFormats;
             return this.printFormats.filter(r => (r.code + r.nameTh + r.nameEn).toLowerCase().includes(q));
         },
+        printFormatLabel(pf) { return pf ? (pf.code + ' - ' + pf.nameTh) : ''; },
+        printFormatLabelById(id) {
+            const pf = this.printFormats.find(p => p.id === id);
+            return this.printFormatLabel(pf) || '(ไม่พบรูปแบบ)';
+        },
+        get allTagCodesForMap() {
+            const codes = new Set(this.allSyncedTags.map(r => r.tag));
+            return ['All (ทั้งหมด)', ...codes];
+        },
+        get filteredPrintMaps() {
+            const q = this.printMapSearch.trim().toLowerCase();
+            const list = this.printMaps.filter(r => !r.deleted);
+            if (!q) return list;
+            return list.filter(r => (r.saleType + this.printFormatLabelById(r.printFormatId) + r.customer + r.productType + r.tagCode + r.oldTagCode).toLowerCase().includes(q));
+        },
+        get selectedPrintFormatForMap() {
+            return this.printFormats.find(p => p.id === this.printMapForm.printFormatId) || null;
+        },
+        get mapPreviewFields() {
+            const pf = this.selectedPrintFormatForMap;
+            if (!pf) return [];
+            return pf.fields.filter(f => f.show).sort((a, b) => (a.order || 99) - (b.order || 99));
+        },
         get filteredHeaderLabels() {
-            const q = this.headerLabelSearch.trim().toLowerCase();
-            if (!q) return this.headerLabels;
-            return this.headerLabels.filter(r => (r.code + r.desc).toLowerCase().includes(q));
+            let list = this.headerLabels.filter(r => {
+                if (this.headerTab === 'deleted') return !!r.deleted;
+                if (r.deleted) return false;
+                return this.headerTab === 'active' ? this.isActive(r) : !this.isActive(r);
+            });
+            const code = this.headerCodeSearch.trim().toLowerCase();
+            const desc = this.headerDescSearch.trim().toLowerCase();
+            if (code) list = list.filter(r => r.code.toLowerCase().includes(code));
+            if (desc) list = list.filter(r => (r.desc || '').toLowerCase().includes(desc));
+            return list;
+        },
+        get headerTotalPages() {
+            return Math.max(1, Math.ceil(this.filteredHeaderLabels.length / this.headerPageSize));
+        },
+        get paginatedHeaderLabels() {
+            const start = (this.headerPage - 1) * this.headerPageSize;
+            return this.filteredHeaderLabels.slice(start, start + this.headerPageSize);
+        },
+        get selectedHeaderRec() {
+            return this.headerLabels.find(r => r.id === this.selectedHeaderId) || null;
         },
         get allSyncedTags() {
             const rows = [];
@@ -1486,7 +1742,7 @@ function app() {
         },
         openImage(title) { this.modalTitle = title; this.showImageModal = true; },
         detailTitle() {
-            return { tag: 'รายละเอียดมาตรฐานการใช้ป้าย', usage: 'รายละเอียดมาตรฐานบรรจุภัณฑ์', brand: 'รายละเอียด Brand สินค้า', printFormat: 'รายละเอียดรูปแบบการพิมพ์ป้าย', headerLabel: 'รายละเอียดป้ายหัวห่อ' }[this.detailType] || 'รายละเอียด';
+            return { tag: 'รายละเอียดมาตรฐานการใช้ป้าย', usage: 'รายละเอียดมาตรฐานบรรจุภัณฑ์', brand: 'รายละเอียด Brand สินค้า', printFormat: 'รายละเอียดรูปแบบการพิมพ์ป้าย', printMap: 'รายละเอียดการผูกรูปแบบการพิมพ์กับป้ายสินค้า', headerLabel: 'รายละเอียดป้ายหัวห่อ' }[this.detailType] || 'รายละเอียด';
         },
         viewDetail(rec, type) { this.detail = rec; this.detailType = type; this.showDetailModal = true; },
         deleteRecord(listName, rec) {
@@ -1553,6 +1809,7 @@ function app() {
         },
         goTagList() { this.view = 'tagList'; },
         goPrintFormatList() { this.view = 'printFormatList'; },
+        goPrintMapList() { this.view = 'printMapList'; },
         goHeaderLabelList() { this.view = 'headerLabelList'; },
         goUsageList() { this.view = 'usageList'; },
 
@@ -1573,10 +1830,67 @@ function app() {
             this.printFormatForm.code = this.nextPrintFormatCode();
             this.view = 'printFormatForm';
         },
+        openNewPrintMapForm() {
+            this.printMapForm = makePrintMapForm();
+            this.printMapForm.printFormatId = this.printFormats[0] ? this.printFormats[0].id : null;
+            this.view = 'printMapForm';
+        },
         openNewHeaderLabelForm() {
             this.headerForm = makeHeaderForm();
+            this.editingHeaderId = null;
             this.selectedGroupId = '02';
             this.view = 'headerLabelForm';
+        },
+        editHeaderLabel() {
+            const rec = this.selectedHeaderRec;
+            if (!rec) return;
+            this.headerForm = {
+                code: rec.code, desc: rec.desc, effectiveDate: rec.effectiveDate, expireDate: rec.expireDate,
+                hasImageInList: rec.hasImageInList, printFromMaster: rec.printFromMaster || false,
+                captions: rec.captions.map(c => ({ ...c }))
+            };
+            this.editingHeaderId = rec.id;
+            this.selectedGroupId = '02';
+            this.view = 'headerLabelForm';
+        },
+        selectHeaderRow(rec) {
+            this.selectedHeaderId = this.selectedHeaderId === rec.id ? null : rec.id;
+        },
+        deleteHeaderLabel() {
+            const rec = this.selectedHeaderRec;
+            if (!rec) return;
+            if (confirm('ยืนยันการลบรูปแบบ "' + rec.code + '" ? (ย้ายไปแท็บ "ที่ถูกลบ" สามารถกู้คืนได้)')) {
+                rec.deleted = true;
+                this.selectedHeaderId = null;
+                this.showToast('ลบข้อมูลเรียบร้อยแล้ว — กู้คืนได้จากแท็บ "ที่ถูกลบ"');
+            }
+        },
+        restoreHeaderLabel() {
+            const rec = this.selectedHeaderRec;
+            if (!rec) return;
+            rec.deleted = false;
+            this.selectedHeaderId = null;
+            this.showToast('กู้คืนรูปแบบ ' + rec.code + ' เรียบร้อยแล้ว');
+        },
+        exportHeaderLabels() {
+            if (typeof XLSX === 'undefined') { this.showToast('ไม่สามารถโหลดไลบรารี Export Excel ได้ (demo)'); return; }
+            const rows = this.filteredHeaderLabels.map(r => ({
+                'รหัสรูปแบบ': r.code, 'รายละเอียด': r.desc, 'รูปภาพ': r.hasImageInList ? 'มี' : 'ไม่มี',
+                'วันที่เริ่มใช้': this.fmtDate(r.effectiveDate), 'วันที่สิ้นสุด': r.expireDate ? this.fmtDate(r.expireDate) : 'ไม่มีกำหนด',
+                'รหัสพนักงาน': r.empCode, 'ชื่อพนักงาน': r.recordedBy, 'วันที่บันทึก': this.fmtDate(r.recordedAt)
+            }));
+            const ws = XLSX.utils.json_to_sheet(rows);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'HeaderLabel');
+            XLSX.writeFile(wb, 'header_label_format.xlsx');
+            this.showToast('Export ไฟล์ header_label_format.xlsx เรียบร้อยแล้ว (' + rows.length + ' แถว)');
+        },
+        fmtDate(iso) {
+            if (!iso) return '';
+            const parts = String(iso).split('-');
+            if (parts.length !== 3) return iso;
+            const [y, m, d] = parts;
+            return parseInt(d, 10) + '/' + m + '/' + y;
         },
 
         pickBrandSubType(brandType, subBrandType) {
@@ -1700,12 +2014,42 @@ function app() {
             this.view = 'printFormatList';
             this.showToast('บันทึกรูปแบบการพิมพ์ป้ายเรียบร้อยแล้ว');
         },
+        savePrintMap() {
+            const f = this.printMapForm;
+            if (!f.printFormatId) { this.showToast('กรุณาเลือกรูปแบบการพิมพ์ป้ายสินค้า'); return; }
+            if (!f.tagCode) { this.showToast('กรุณาเลือกรหัสป้าย'); return; }
+            const newId = this.printMaps.length ? Math.max(...this.printMaps.map(r => r.id)) + 1 : 1;
+            this.printMaps.unshift({
+                id: newId, saleType: f.saleType, printFormatId: f.printFormatId, customer: f.customer,
+                productType: f.productType, tagCode: f.tagCode, oldTagCode: f.oldTagCode,
+                effectiveDate: f.effectiveDate, expireDate: f.expireDate, deleted: false
+            });
+            this.view = 'printMapList';
+            this.showToast('บันทึกคู่ข้อมูลการพิมพ์ป้ายเรียบร้อยแล้ว');
+        },
         saveHeaderLabel() {
             const f = this.headerForm;
-            const newId = this.headerLabels.length ? Math.max(...this.headerLabels.map(r => r.id)) + 1 : 1;
-            this.headerLabels.unshift({ id: newId, code: f.code, desc: f.desc, effectiveDate: f.effectiveDate, expireDate: f.expireDate, hasImageInList: f.hasImageInList, printFromMaster: f.printFromMaster, captions: f.captions.map(c => ({ ...c })) });
+            if (!f.code || !f.desc) { this.showToast('กรุณากรอกรหัสรูปแบบและรายละเอียดให้ครบถ้วน'); return; }
+            if (this.editingHeaderId) {
+                const rec = this.headerLabels.find(r => r.id === this.editingHeaderId);
+                if (rec) {
+                    Object.assign(rec, { code: f.code, desc: f.desc, effectiveDate: f.effectiveDate, expireDate: f.expireDate, hasImageInList: f.hasImageInList, printFromMaster: f.printFromMaster, captions: f.captions.map(c => ({ ...c })) });
+                }
+                this.editingHeaderId = null;
+                this.showToast('แก้ไขรูปแบบป้ายหัวห่อเรียบร้อยแล้ว');
+            } else {
+                const newId = this.headerLabels.length ? Math.max(...this.headerLabels.map(r => r.id)) + 1 : 1;
+                const now = new Date();
+                const recordedAt = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+                this.headerLabels.unshift({
+                    id: newId, code: f.code, desc: f.desc, effectiveDate: f.effectiveDate, expireDate: f.expireDate,
+                    hasImageInList: f.hasImageInList, printFromMaster: f.printFromMaster, captions: f.captions.map(c => ({ ...c })),
+                    empCode: '0000000', recordedBy: 'ผู้ใช้งานปัจจุบัน (Demo)', recordedAt, deleted: false
+                });
+                this.showToast('บันทึกรูปแบบป้ายหัวห่อเรียบร้อยแล้ว');
+            }
+            this.headerTab = 'active'; this.headerPage = 1;
             this.view = 'headerLabelList';
-            this.showToast('บันทึกรูปแบบป้ายหัวห่อเรียบร้อยแล้ว');
         },
 
         showToast(msg) { this.toast = msg; setTimeout(() => { this.toast = null }, 3200); },
